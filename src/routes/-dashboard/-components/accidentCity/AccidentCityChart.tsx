@@ -11,7 +11,7 @@ import {
 import { LineChart, PieChart } from "echarts/charts"
 import { LabelLayout, UniversalTransition } from "echarts/features"
 import { CanvasRenderer } from "echarts/renderers"
-import TypeMenuList from "./TypeMenuList"
+import AccidentCityTitle from "./AccidentCityTitle"
 import type { EChartsOption } from "@/types/eChart"
 import mock_data from "../../../../../server/cacheMerged/accident_aggregated.json"
 
@@ -63,13 +63,13 @@ echarts.use([
   LegendComponent,
 ])
 
-const AccidentCityLineRace = () => {
+const AccidentCityChart = () => {
   const chartRef = useRef<HTMLDivElement>(null)
-  const chartInstance = useRef<echarts.EChartsType | null>(null)
-  const hoverTarget = useRef<{
-    currentSeriesIndex: number | null
-    currentDataIndex: number | null
-  }>({
+  const chartInstance =
+    useRef<UseActivateTooltipTextProps["chartInstance"]["current"]>(null)
+  const hoverTarget = useRef<
+    UseActivateTooltipTextProps["hoverTarget"]["current"]
+  >({
     currentSeriesIndex: null,
     currentDataIndex: null,
   })
@@ -88,41 +88,6 @@ const AccidentCityLineRace = () => {
       if (chartInstance.current) {
         chartInstance.current.dispose()
       }
-    }
-  }, [])
-
-  //   // 窗口大小改變時調整圖表大小
-  useEffect(() => {
-    const handleResize = () => {
-      if (chartInstance.current) {
-        chartInstance.current.resize()
-      }
-    }
-
-    window.addEventListener("resize", handleResize)
-    return () => {
-      window.removeEventListener("resize", handleResize)
-    }
-  }, [])
-
-  // 滑鼠移動事件，綁定Tooltip
-  useEffect(() => {
-    if (!chartInstance.current) return
-    const chart = chartInstance.current
-
-    function handleMouseMove(e: echarts.ECElementEvent) {
-      hoverTarget.current.currentSeriesIndex = e.seriesIndex ?? null
-      hoverTarget.current.currentDataIndex = e.dataIndex ?? null
-    }
-    function handleMouseOut() {
-      hoverTarget.current.currentSeriesIndex = null
-      hoverTarget.current.currentDataIndex = null
-    }
-    chart.on("mousemove", handleMouseMove)
-    chart.on("mouseout", handleMouseOut)
-    return () => {
-      chart.off("mousemove", handleMouseMove)
-      chart.off("mouseout", handleMouseOut)
     }
   }, [])
 
@@ -171,6 +136,7 @@ const AccidentCityLineRace = () => {
             ],
           },
         },
+
         {
           query: {
             minWidth: 1000,
@@ -190,12 +156,6 @@ const AccidentCityLineRace = () => {
           axisType: "category",
           show: false,
         },
-        title: {
-          text: "各縣市即時交通事故",
-          subtext: "資料來源: TDX 運輸資料流通服務",
-          left: "center",
-          top: 0,
-        },
 
         legend: [
           {
@@ -208,9 +168,12 @@ const AccidentCityLineRace = () => {
           },
           {
             data: ["A1類", "A2類", "A3類"],
-            right: 15,
-            top: 3,
+            right: 20,
+            top: 10,
             textStyle: {
+              fontSize: 16,
+            },
+            subtextStyle: {
               fontSize: 16,
             },
           },
@@ -334,12 +297,70 @@ const AccidentCityLineRace = () => {
     chartInstance.current.setOption(option)
   }
 
+  // 窗口大小改變時調整圖表大小
+  useResizeChart({ chartInstance })
+
+  // 滑鼠移動事件，綁定Tooltip，並且設定 hover 的縣市
+  useActivateTooltipText({
+    chartInstance,
+    hoverTarget,
+  })
+
   return (
     <>
-      <TypeMenuList />
-      <div ref={chartRef} style={{ width: "100%", height: "350px" }} />
+      <AccidentCityTitle />
+      <div ref={chartRef} style={{ width: "100%", height: "400px" }} />
     </>
   )
 }
+type UseActivateTooltipTextProps = {
+  chartInstance: React.RefObject<echarts.EChartsType | null>
+  hoverTarget: React.RefObject<{
+    currentSeriesIndex: number | null
+    currentDataIndex: number | null
+  }>
+}
+function useActivateTooltipText({
+  chartInstance,
+  hoverTarget,
+}: UseActivateTooltipTextProps) {
+  useEffect(() => {
+    if (!chartInstance.current) return
+    const chart = chartInstance.current
 
-export default AccidentCityLineRace
+    function handleMouseMove(e: echarts.ECElementEvent) {
+      hoverTarget.current.currentSeriesIndex = e.seriesIndex ?? null
+      hoverTarget.current.currentDataIndex = e.dataIndex ?? null
+    }
+    function handleMouseOut() {
+      hoverTarget.current.currentSeriesIndex = null
+      hoverTarget.current.currentDataIndex = null
+    }
+    chart.on("mousemove", handleMouseMove)
+    chart.on("mouseout", handleMouseOut)
+    return () => {
+      chart.off("mousemove", handleMouseMove)
+      chart.off("mouseout", handleMouseOut)
+    }
+  }, [chartInstance, hoverTarget])
+}
+
+type UseResizeChartProps = {
+  chartInstance: React.RefObject<echarts.EChartsType | null>
+}
+function useResizeChart({ chartInstance }: UseResizeChartProps) {
+  useEffect(() => {
+    const handleResize = () => {
+      if (chartInstance.current) {
+        chartInstance.current.resize()
+      }
+    }
+
+    window.addEventListener("resize", handleResize)
+    return () => {
+      window.removeEventListener("resize", handleResize)
+    }
+  }, [chartInstance])
+}
+
+export default AccidentCityChart

@@ -1,5 +1,11 @@
-import { blue, grey } from "@mui/material/colors";
-import { createTheme } from "@mui/material/styles";
+import { blue, grey } from "@mui/material/colors"
+import { createTheme } from "@mui/material/styles"
+
+declare module "@mui/material/styles" {
+  interface BreakpointOverrides {
+    "2xl": true
+  }
+}
 
 export const theme = createTheme({
   palette: {
@@ -8,6 +14,16 @@ export const theme = createTheme({
     },
     background: {
       default: grey[100],
+    },
+  },
+  breakpoints: {
+    values: {
+      xs: 0,
+      sm: 600,
+      md: 900,
+      lg: 1200,
+      xl: 1280,
+      "2xl": 1536,
     },
   },
   components: {
@@ -31,4 +47,4 @@ export const theme = createTheme({
       },
     },
   },
-});
+})
