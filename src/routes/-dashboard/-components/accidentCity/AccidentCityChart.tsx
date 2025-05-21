@@ -114,7 +114,6 @@ const AccidentCityChart = () => {
         stack: "total",
         data,
         emphasis: { focus: "series" as const },
-        barWidth: 30,
         label: { show: false },
         itemStyle: {
           color: cityColorMap[city] || "#333",
