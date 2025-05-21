@@ -2,7 +2,7 @@ import { styled } from "@mui/material/styles"
 import Box from "@mui/material/Box"
 import Paper from "@mui/material/Paper"
 import Grid from "@mui/material/Grid"
-import LineRace from "./-components/lineRace/AccidentCityLineRace"
+import AccidentCityChart from "./-components/accidentCity/AccidentCityChart"
 import GeoPreviewMap from "./-components/GeoPreviewMap"
 export const Item = styled(Paper)(({ theme }) => ({
   backgroundColor: "#fff",
@@ -21,7 +21,7 @@ export default function Dashboard() {
       <Grid container spacing={2}>
         <Grid size={7}>
           <Item sx={{ position: "relative" }}>
-            <LineRace />
+            <AccidentCityChart />
           </Item>
         </Grid>
         <Grid
