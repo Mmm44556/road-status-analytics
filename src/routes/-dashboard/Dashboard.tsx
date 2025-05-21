@@ -1,10 +1,9 @@
-import { styled } from "@mui/material/styles";
-import Box from "@mui/material/Box";
-import Paper from "@mui/material/Paper";
-import Grid from "@mui/material/Grid";
-import LineRace from "./-components/lineRace/AccidentCityLineRace";
-import GeoPreviewMap from "./-components/GeoPreviewMap";
-
+import { styled } from "@mui/material/styles"
+import Box from "@mui/material/Box"
+import Paper from "@mui/material/Paper"
+import Grid from "@mui/material/Grid"
+import LineRace from "./-components/lineRace/AccidentCityLineRace"
+import GeoPreviewMap from "./-components/GeoPreviewMap"
 export const Item = styled(Paper)(({ theme }) => ({
   backgroundColor: "#fff",
   ...theme.typography.body2,
@@ -14,7 +13,7 @@ export const Item = styled(Paper)(({ theme }) => ({
   ...theme.applyStyles("dark", {
     backgroundColor: "#1A2027",
   }),
-}));
+}))
 
 export default function Dashboard() {
   return (
@@ -41,5 +40,5 @@ export default function Dashboard() {
         </Grid>
       </Grid>
     </Box>
-  );
+  )
 }
