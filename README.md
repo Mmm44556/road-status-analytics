@@ -37,8 +37,16 @@
   - 路段編碼: [Swagger](https://tdx.transportdata.tw/api-service/swagger/basic/e2718568-e098-4714-ac7d-7fa7d551e613#/Link/Link_GetLinkID)
   - 路段座標: [資料服務](https://tdx.transportdata.tw/data-service/basic)
   - 即時路況: [Swagger](https://tdx.transportdata.tw/api-service/swagger/basic/7f07d940-91a4-495d-9465-1c9df89d709c#/), [data.gov.tw](https://data.gov.tw/dataset/161170)
+
+- 警廣即時路況: [https://data.gov.tw/dataset/15221]
+
   - 省道交控路側設備資料: [data.gov.tw](https://data.gov.tw/dataset/29817)
 
+- 資料標準規範: [https://tdx.transportdata.tw/data-standard/description]
+
+- 交通部高速公路局交通資料庫: [https://tisvcloud.freeway.gov.tw/]
+
+- 歷年重大交通事故地點資料: [https://data.gov.tw/dataset/6132]
 ---
 
 ## 頁面內容規劃
