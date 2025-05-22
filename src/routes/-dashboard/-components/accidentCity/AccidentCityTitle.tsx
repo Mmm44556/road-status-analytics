@@ -17,19 +17,15 @@ const AccidentCityTitle = () => {
       sx={{
         position: "absolute",
         left: "calc(50% - 50px)",
-        bottom: 0,
         transform: "translateX(-50%)",
         zIndex: 1000,
+        top: 0,
         display: "flex",
         flexDirection: "column",
         alignItems: "center",
         justifyContent: "center",
         color: "black",
         height: "fit-content",
-        top: {
-          xl: 10,
-          "2xl": 9,
-        },
       }}
     >
       <Box sx={{ display: "flex", alignItems: "center", gap: 0.5 }}>
@@ -69,7 +65,7 @@ const AccidentCityTitle = () => {
         </HtmlTooltip>
       </Box>
       <Typography sx={{ fontSize: 14, color: grey[600] }}>
-        資料來源: TDX 運輸資料流通服務
+        資料來源: 政府開放資料平台
       </Typography>
     </Box>
   )

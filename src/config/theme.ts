@@ -1,4 +1,4 @@
-import { blue, grey } from "@mui/material/colors"
+import { grey } from "@mui/material/colors"
 import { createTheme } from "@mui/material/styles"
 
 declare module "@mui/material/styles" {
@@ -9,9 +9,6 @@ declare module "@mui/material/styles" {
 
 export const theme = createTheme({
   palette: {
-    primary: {
-      main: "#fff",
-    },
     background: {
       default: grey[100],
     },
@@ -31,7 +28,7 @@ export const theme = createTheme({
       styleOverrides: {
         root: {
           "& .MuiTabs-indicator": {
-            backgroundColor: blue[600],
+            backgroundColor: grey[100],
             height: "2px",
           },
         },

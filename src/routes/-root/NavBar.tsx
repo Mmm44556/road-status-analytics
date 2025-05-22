@@ -16,7 +16,7 @@ import Toolbar from "@mui/material/Toolbar";
 import Typography from "@mui/material/Typography";
 import useScrollTrigger from "@mui/material/useScrollTrigger";
 import Slide from "@mui/material/Slide";
-import BrandMenu from "./Menu";
+import BrandMenu from "./BrandMenu";
 import Navigation from "./Navigation";
 import { navigationItems } from "@/data/navigationItems";
 
