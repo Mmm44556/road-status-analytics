@@ -1,0 +1,519 @@
+{
+  "UpdateTime": "2025-05-31T17:51:42+08:00",
+  "UpdateInterval": 60,
+  "SrcUpdateTime": "2025-05-31T17:51:28+08:00",
+  "SrcUpdateInterval": -1,
+  "AuthorityCode": "TXG",
+  "LiveEvents": [
+    {
+      "EventID": "387290000H_001-01-11405300221-0",
+      "EventTitle": "道路施工",
+      "Description": "雙向在0公里到22.1公里之間台10線雙向0K至22K+100清水至神岡路段，自114年5月31日當日8時30分起至17時止，於內車道進行結構縫清理，採移動性施工，請注意路況並小心駕駛。&&雙向在0公里到20.5公里之間台10線雙向0K至20K+500清水至神岡路段，自114年5月30日當日9時起至18時止，於全車道進行道路標線磨除及標線零星補繪工程，依施作位置現況管制或封閉車道，請注意路況並小心駕駛。&&雙向在0公里到22.1公里之間台10線雙向0K至22K+100清水至神岡路段，自114年5月30日當日8時30分至17時止，於中央分向島內車道進行喬木修剪，採移動性施工，請注意路況並小心駕駛。",
+      "EventType": 2,
+      "EventSubType": 208,
+      "EventStep": 1,
+      "EffectiveTime": "2025-05-31T16:15:00+08:00",
+      "Positions": "POINT (120.70809 24.250235)",
+      "LocationType": 0,
+      "Location": {
+        "Other": "臺中港豐原-台10線"
+      },
+      "Source": "警廣",
+      "PublishTime": "2025-05-31T17:51:28+08:00",
+      "LastUpdateTime": "2025-05-31T17:51:28+08:00"
+    },
+    {
+      "EventID": "387290000H_001-01-11405310031-2",
+      "EventTitle": "道路施工",
+      "Description": "松竹路 往東山路方向 過環中東路 內側 施工圍籬擺放 , 目前後方車流正常\t\t\t\t\n健行路 往崇德路方向 中清路前後 外側 施工三角錐擺放，後方車流正常\t\t\t\t\n崇德路 雙向 近健行路 至 進化北路 內側 施工圍籬擺放，目前後方車流正常\t\t\t\t\t\n崇德十九路 往崇德路 過豐樂一街 、  豐樂一街 往環中路 崇德十九路前  施工圍籬擺放 單線雙向通行， 後方車流正常\n豐原中正路 往豐原市區方向 大社街 至 豐原大道 外側 施工，目前後方車流增加趨勢\t\n忠勇路 往永春路方向 向上路前 外側 施工圍籬擺放 , 目前後方車流正常&&台灣大道\t健行路-忠明路 往東海\t車多\t\t\t\n台灣大道\t河南路-惠中路 往市區 慢車道\t車多\n新光遠百\t周邊道路\t車多&&松竹路 往東山路方向 過環中東路 內側 施工圍籬擺放 , 目前後方車流正常\t\t\t\t\t\n健行路 往崇德路方向 中清路前後 外側 施工三角錐擺放，後方車流正常\t\t\t\t\t\n崇德路 雙向 近健行路 至 進化北路 內側 施工圍籬擺放，目前後方車流正常\t\t\t\t\n崇德十九路 往崇德路 過豐樂一街 、  豐樂一街 往環中路 崇德十九路前  施工圍籬擺放 單線雙向通行， 後方車流正常\n豐原中正路 往豐原市區方向 大社街 至 豐原大道 外側 施工，目前後方車流增加趨勢\n忠勇路 往永春路方向 向上路前 外側 施工圍籬擺放 , 目前後方車流正常&&台灣大道\t河南路-惠中路 往市區 慢車道\t車多\n新光遠百\t周邊道路\t車多&&松竹路 往東山路方向 過環中東路 內側 施工圍籬擺放 , 目前後方車流正常\t\t\t\t\t\n健行路 往崇德路方向 中清路前後 外側 施工三角錐擺放，後方車流正常\t\t\t\t\n崇德路 雙向 近健行路 至 進化北路 內側 施工圍籬擺放，目前後方車流正常\t\t\t\t\t\n崇德十九路 往崇德路 過豐樂一街 、  豐樂一街 往環中路 崇德十九路前  施工圍籬擺放 單線雙向通行， 後方車流正常,\t\n豐原中正路 往豐原市區方向 大社街 至 豐原大道 外側 施工，目前後方車流正常\n忠勇路 往永春路方向 向上路前 外側 施工圍籬擺放 , 目前後方車流正常&&新光遠百\t周邊道路\t車多&&松竹路 往東山路方向 過環中東路 內側 施工圍籬擺放\t\t\t\t\n健行路 往崇德路方向 中清路前後 外側 施工三角錐擺放\t\t\n崇德路 雙向 近健行路 至 進化北路 內側 施工圍籬擺放\t\t\n崇德十九路 往崇德路 過豐樂一街 、 豐樂一街 往環中路 崇德十九路前  施工圍籬擺放 單線雙向通行\t\t\n豐原中正路 往豐原市區方向 大社街 至 豐原大道 外側 施工圍籬擺放\t\t\t\n忠勇路 往永春路方向 向上路前 外側 施工圍籬擺放&&國1大雅系統交流道\t北向入口匝道\t車多",
+      "EventType": 2,
+      "EventSubType": 299,
+      "EventStep": 1,
+      "EffectiveTime": "2025-05-31T16:04:14+08:00",
+      "Positions": "POINT (120.52 24.2)",
+      "LocationType": 0,
+      "Location": {
+        "Other": "三港路"
+      },
+      "Source": "警廣",
+      "PublishTime": "2025-05-31T17:51:28+08:00",
+      "LastUpdateTime": "2025-05-31T17:51:28+08:00"
+    },
+    {
+      "EventID": "387290000H_001-01-11405310014-2",
+      "EventTitle": "壅塞",
+      "Description": "北上在178公里台中系統 入口匝道 外側 1小貨車+2小客車事故",
+      "EventType": 3,
+      "EventSubType": 302,
+      "EventStep": 1,
+      "EffectiveTime": "2025-05-31T12:59:30+08:00",
+      "Positions": "POINT (121.73558 25.12263)",
+      "LocationType": 0,
+      "Location": {
+        "Other": "中山高速公路-國道１號"
+      },
+      "Source": "警廣",
+      "PublishTime": "2025-05-31T17:51:30+08:00",
+      "LastUpdateTime": "2025-05-31T17:51:30+08:00"
+    },
+    {
+      "EventID": "387290000H_001-01-11405310009-2",
+      "EventTitle": "壅塞",
+      "Description": "車流紓解中*銜接 國1 北上 大雅系統匝道 車多&&西行在1公里到0公里之間往彰化   快官匝道 轉國3 車多,&&東向往霧峰    霧峰匝道 轉國3 車多",
+      "EventType": 3,
+      "EventSubType": 302,
+      "EventStep": 1,
+      "EffectiveTime": "2025-05-31T11:16:04+08:00",
+      "Positions": "POINT (120.60324 24.09118)",
+      "LocationType": 0,
+      "Location": {
+        "Other": "快官霧峰-台74線"
+      },
+      "Source": "警廣",
+      "PublishTime": "2025-05-31T17:51:30+08:00",
+      "LastUpdateTime": "2025-05-31T17:51:30+08:00"
+    },
+    {
+      "EventID": "387290000H_001-01-11405300067-2",
+      "EventTitle": "道路施工",
+      "Description": "中正路 往豐原市區方向 大社街 至 豐原大道 外側 施工圍籬擺放     \n  後方車多",
+      "EventType": 2,
+      "EventSubType": 299,
+      "EventStep": 1,
+      "EffectiveTime": "2025-05-30T18:11:51+08:00",
+      "Positions": "POINT (120.73757 24.249903)",
+      "LocationType": 0,
+      "Location": {
+        "Other": "臺中市-豐原區"
+      },
+      "Source": "警廣",
+      "PublishTime": "2025-05-31T17:51:30+08:00",
+      "LastUpdateTime": "2025-05-31T17:51:30+08:00"
+    },
+    {
+      "EventID": "387290000H_001-01-4132631",
+      "EventTitle": "活動",
+      "Description": "第一崇光國際開發股份有限公司 114年全館重要檔期暨特賣活動",
+      "EventType": 7,
+      "EventSubType": 798,
+      "EventStep": 1,
+      "EffectiveTime": "2025-01-01T00:00:00+08:00",
+      "Positions": "POINT (120.661011846906 24.1540449726654)",
+      "LocationType": 0,
+      "Location": {
+        "Other": "台灣大道二段/美村路一段/長春街/華美街"
+      },
+      "Source": "交通局-施工",
+      "PublishTime": "2025-05-31T17:51:30+08:00",
+      "LastUpdateTime": "2025-05-31T17:51:30+08:00"
+    },
+    {
+      "EventID": "387290000H_001-01-4132632",
+      "EventTitle": "活動",
+      "Description": "臺中秀泰商場 交通維持計畫",
+      "EventType": 7,
+      "EventSubType": 798,
+      "EventStep": 1,
+      "EffectiveTime": "2025-01-01T00:00:00+08:00",
+      "Positions": "POINT (120.645088131724 24.1301921797499)",
+      "LocationType": 0,
+      "Location": {
+        "Other": "豐偉路"
+      },
+      "Source": "交通局-施工",
+      "PublishTime": "2025-05-31T17:51:30+08:00",
+      "LastUpdateTime": "2025-05-31T17:51:30+08:00"
+    },
+    {
+      "EventID": "387290000H_001-01-4132633",
+      "EventTitle": "活動",
+      "Description": "臺中秀泰商場 交通維持計畫",
+      "EventType": 7,
+      "EventSubType": 798,
+      "EventStep": 1,
+      "EffectiveTime": "2025-01-01T00:00:00+08:00",
+      "Positions": "POINT (120.646245656432 24.1295172909433)",
+      "LocationType": 0,
+      "Location": {
+        "Other": "文心南七路"
+      },
+      "Source": "交通局-施工",
+      "PublishTime": "2025-05-31T17:51:30+08:00",
+      "LastUpdateTime": "2025-05-31T17:51:30+08:00"
+    },
+    {
+      "EventID": "387290000H_001-01-4132634",
+      "EventTitle": "活動",
+      "Description": "新光三越114 年度大型特賣活動交通維持計畫",
+      "EventType": 7,
+      "EventSubType": 798,
+      "EventStep": 1,
+      "EffectiveTime": "2025-01-25T00:00:00+08:00",
+      "Positions": "POINT (120.645079886113 24.1628128740266)",
+      "LocationType": 0,
+      "Location": {
+        "Other": "惠中路、市政北七路、惠來路、臺灣大道三段"
+      },
+      "Source": "交通局-施工",
+      "PublishTime": "2025-05-31T17:51:30+08:00",
+      "LastUpdateTime": "2025-05-31T17:51:30+08:00"
+    },
+    {
+      "EventID": "387290000H_001-01-4132635",
+      "EventTitle": "活動",
+      "Description": "大遠百114年度大型特賣活動交通維持計畫",
+      "EventType": 7,
+      "EventSubType": 798,
+      "EventStep": 1,
+      "EffectiveTime": "2025-01-25T00:00:00+08:00",
+      "Positions": "POINT (120.645099330507 24.1628263292654)",
+      "LocationType": 0,
+      "Location": {
+        "Other": "惠中路、市政北七路、惠來路、臺灣大道三段"
+      },
+      "Source": "交通局-施工",
+      "PublishTime": "2025-05-31T17:51:30+08:00",
+      "LastUpdateTime": "2025-05-31T17:51:30+08:00"
+    },
+    {
+      "EventID": "387290000H_001-01-4132636",
+      "EventTitle": "活動",
+      "Description": "臺中中友百貨2025 年度週年慶及大型特賣活動交通維持計畫",
+      "EventType": 7,
+      "EventSubType": 798,
+      "EventStep": 1,
+      "EffectiveTime": "2025-01-25T00:00:00+08:00",
+      "Positions": "POINT (120.685209325136 24.1528569741037)",
+      "LocationType": 0,
+      "Location": {
+        "Other": "育才北路"
+      },
+      "Source": "交通局-施工",
+      "PublishTime": "2025-05-31T17:51:30+08:00",
+      "LastUpdateTime": "2025-05-31T17:51:30+08:00"
+    },
+    {
+      "EventID": "387290000H_001-01-4132641",
+      "EventTitle": "道路施工",
+      "Description": "台中渢妙離岸風力發電計畫(第一期)陸纜管路新建工程-地下管路工程-三順路",
+      "EventType": 2,
+      "EventSubType": 299,
+      "EventStep": 1,
+      "EffectiveTime": "2025-05-28T00:00:00+08:00",
+      "Positions": "POINT (120.551444163623 24.296906184331)",
+      "LocationType": 0,
+      "Location": {
+        "Other": "三順路-M-08-後"
+      },
+      "Source": "交通局-施工",
+      "PublishTime": "2025-05-31T17:51:30+08:00",
+      "LastUpdateTime": "2025-05-31T17:51:30+08:00"
+    },
+    {
+      "EventID": "387290000H_001-01-4132642",
+      "EventTitle": "道路施工",
+      "Description": "台中渢妙離岸風力發電計畫(第一期)陸纜管路新建工程-地下管路工程-三順路",
+      "EventType": 2,
+      "EventSubType": 299,
+      "EventStep": 1,
+      "EffectiveTime": "2025-05-28T00:00:00+08:00",
+      "Positions": "POINT (120.550213897742 24.2975256966603)",
+      "LocationType": 0,
+      "Location": {
+        "Other": "三順路-M-08-前"
+      },
+      "Source": "交通局-施工",
+      "PublishTime": "2025-05-31T17:51:30+08:00",
+      "LastUpdateTime": "2025-05-31T17:51:30+08:00"
+    },
+    {
+      "EventID": "387290000H_001-01-4132643",
+      "EventTitle": "道路施工",
+      "Description": "台中渢妙離岸風力發電計畫(第一期)陸纜管路新建工程-地下管路工程-三順路",
+      "EventType": 2,
+      "EventSubType": 299,
+      "EventStep": 1,
+      "EffectiveTime": "2025-05-28T00:00:00+08:00",
+      "Positions": "POINT (120.549514875237 24.2978708968464)",
+      "LocationType": 0,
+      "Location": {
+        "Other": "三順路-M-07"
+      },
+      "Source": "交通局-施工",
+      "PublishTime": "2025-05-31T17:51:30+08:00",
+      "LastUpdateTime": "2025-05-31T17:51:30+08:00"
+    },
+    {
+      "EventID": "387290000H_001-01-4132644",
+      "EventTitle": "道路施工",
+      "Description": "台中第三供水區祥順路送水管工程-管(二)",
+      "EventType": 2,
+      "EventSubType": 299,
+      "EventStep": 1,
+      "EffectiveTime": "2025-05-26T00:00:00+08:00",
+      "Positions": "POINT (120.730219401916 24.1739634466407)",
+      "LocationType": 0,
+      "Location": {
+        "Other": "松竹路(軍福十六路~軍福十五路)"
+      },
+      "Source": "交通局-施工",
+      "PublishTime": "2025-05-31T17:51:30+08:00",
+      "LastUpdateTime": "2025-05-31T17:51:30+08:00"
+    },
+    {
+      "EventID": "387290000H_001-01-4132645",
+      "EventTitle": "道路施工",
+      "Description": "大臺中轉運中心興建工程",
+      "EventType": 2,
+      "EventSubType": 299,
+      "EventStep": 1,
+      "EffectiveTime": "2025-05-23T00:00:00+08:00",
+      "Positions": "POINT (120.687683564418 24.1388630773743)",
+      "LocationType": 0,
+      "Location": {
+        "Other": "臺中市東區八德街"
+      },
+      "Source": "交通局-施工",
+      "PublishTime": "2025-05-31T17:51:30+08:00",
+      "LastUpdateTime": "2025-05-31T17:51:30+08:00"
+    },
+    {
+      "EventID": "387290000H_001-01-4132646",
+      "EventTitle": "道路施工",
+      "Description": "臺中鐵路高架化騰空廊道下埋設管線工程管(六)續",
+      "EventType": 2,
+      "EventSubType": 206,
+      "EventStep": 1,
+      "EffectiveTime": "2025-05-19T00:00:00+08:00",
+      "Positions": "POINT (120.70018733366 24.165204251745)",
+      "LocationType": 0,
+      "Location": {
+        "Other": "東光路與太原路三段路口-1"
+      },
+      "Source": "交通局-施工",
+      "PublishTime": "2025-05-31T17:51:30+08:00",
+      "LastUpdateTime": "2025-05-31T17:51:30+08:00"
+    },
+    {
+      "EventID": "387290000H_001-01-4132647",
+      "EventTitle": "道路施工",
+      "Description": "臺中鐵路高架化騰空廊道下埋設管線工程管(六)續",
+      "EventType": 2,
+      "EventSubType": 206,
+      "EventStep": 1,
+      "EffectiveTime": "2025-05-19T00:00:00+08:00",
+      "Positions": "POINT (120.700105558349 24.1645668219083)",
+      "LocationType": 0,
+      "Location": {
+        "Other": "東光路與太原路三段路口-2"
+      },
+      "Source": "交通局-施工",
+      "PublishTime": "2025-05-31T17:51:30+08:00",
+      "LastUpdateTime": "2025-05-31T17:51:30+08:00"
+    },
+    {
+      "EventID": "387290000H_001-01-4132648",
+      "EventTitle": "道路施工",
+      "Description": "臺中鐵路高架化騰空廊道下埋設管線工程管(六)續",
+      "EventType": 2,
+      "EventSubType": 206,
+      "EventStep": 1,
+      "EffectiveTime": "2025-05-14T00:00:00+08:00",
+      "Positions": "POINT (120.700449395739 24.1675564257547)",
+      "LocationType": 0,
+      "Location": {
+        "Other": "東光路(三光北一街-太原路三段)"
+      },
+      "Source": "交通局-施工",
+      "PublishTime": "2025-05-31T17:51:30+08:00",
+      "LastUpdateTime": "2025-05-31T17:51:30+08:00"
+    },
+    {
+      "EventID": "387290000H_001-01-4132649",
+      "EventTitle": "道路施工",
+      "Description": "台中第三供水區祥順路送水管工程-管(一)",
+      "EventType": 2,
+      "EventSubType": 299,
+      "EventStep": 1,
+      "EffectiveTime": "2025-05-12T00:00:00+08:00",
+      "Positions": "POINT (120.727579637597 24.1794290712481)",
+      "LocationType": 0,
+      "Location": {
+        "Other": "松竹路一段(建和路~東山路)"
+      },
+      "Source": "交通局-施工",
+      "PublishTime": "2025-05-31T17:51:30+08:00",
+      "LastUpdateTime": "2025-05-31T17:51:30+08:00"
+    },
+    {
+      "EventID": "387290000H_001-01-4132650",
+      "EventTitle": "道路施工",
+      "Description": "台中第三供水區祥順路送水管工程-管(一)",
+      "EventType": 2,
+      "EventSubType": 299,
+      "EventStep": 1,
+      "EffectiveTime": "2025-05-12T00:00:00+08:00",
+      "Positions": "POINT (120.730237519103 24.1772478184963)",
+      "LocationType": 0,
+      "Location": {
+        "Other": "松竹路一段(東山路一段-推進工程)-1"
+      },
+      "Source": "交通局-施工",
+      "PublishTime": "2025-05-31T17:51:30+08:00",
+      "LastUpdateTime": "2025-05-31T17:51:30+08:00"
+    },
+    {
+      "EventID": "387290000H_001-01-4132651",
+      "EventTitle": "道路施工",
+      "Description": "台中第三供水區祥順路送水管工程-管(一)",
+      "EventType": 2,
+      "EventSubType": 299,
+      "EventStep": 1,
+      "EffectiveTime": "2025-05-12T00:00:00+08:00",
+      "Positions": "POINT (120.730335089076 24.1766921732064)",
+      "LocationType": 0,
+      "Location": {
+        "Other": "松竹路一段(東山路~軍福十六路)"
+      },
+      "Source": "交通局-施工",
+      "PublishTime": "2025-05-31T17:51:30+08:00",
+      "LastUpdateTime": "2025-05-31T17:51:30+08:00"
+    },
+    {
+      "EventID": "387290000H_001-01-4132652",
+      "EventTitle": "道路施工",
+      "Description": "台中第三供水區祥順路送水管工程-管(一)",
+      "EventType": 2,
+      "EventSubType": 299,
+      "EventStep": 1,
+      "EffectiveTime": "2025-05-12T00:00:00+08:00",
+      "Positions": "POINT (120.730323816359 24.1769589536777)",
+      "LocationType": 0,
+      "Location": {
+        "Other": "松竹路一段(東山路一段-推進工程)-2"
+      },
+      "Source": "交通局-施工",
+      "PublishTime": "2025-05-31T17:51:30+08:00",
+      "LastUpdateTime": "2025-05-31T17:51:30+08:00"
+    },
+    {
+      "EventID": "387290000H_001-01-4132797",
+      "EventTitle": "道路施工",
+      "Description": "惠昇建設股份有限公司 謙富集合住宅新建工程(109-00763)",
+      "EventType": 2,
+      "EventSubType": 299,
+      "EventStep": 1,
+      "EffectiveTime": "2025-05-30T00:00:00+08:00",
+      "Positions": "POINT (120.708221618126 24.1962001329915)",
+      "LocationType": 0,
+      "Location": {
+        "Other": "敦富東街"
+      },
+      "Source": "交通局-施工",
+      "PublishTime": "2025-05-31T17:51:30+08:00",
+      "LastUpdateTime": "2025-05-31T17:51:30+08:00"
+    },
+    {
+      "EventID": "387290000H_001-01-4132798",
+      "EventTitle": "道路施工",
+      "Description": "惠昇建設股份有限公司 謙富集合住宅新建工程(109-00763)",
+      "EventType": 2,
+      "EventSubType": 299,
+      "EventStep": 1,
+      "EffectiveTime": "2025-05-30T00:00:00+08:00",
+      "Positions": "POINT (120.707369615749 24.196355656311)",
+      "LocationType": 0,
+      "Location": {
+        "Other": "敦富路"
+      },
+      "Source": "交通局-施工",
+      "PublishTime": "2025-05-31T17:51:30+08:00",
+      "LastUpdateTime": "2025-05-31T17:51:30+08:00"
+    },
+    {
+      "EventID": "387290000H_001-01-4132799",
+      "EventTitle": "道路施工",
+      "Description": "陳慧齡住宅新建工程(113-00720)",
+      "EventType": 2,
+      "EventSubType": 299,
+      "EventStep": 1,
+      "EffectiveTime": "2025-05-30T00:00:00+08:00",
+      "Positions": "POINT (120.676805905987 24.147573038769)",
+      "LocationType": 0,
+      "Location": {
+        "Other": "篤行路"
+      },
+      "Source": "交通局-施工",
+      "PublishTime": "2025-05-31T17:51:30+08:00",
+      "LastUpdateTime": "2025-05-31T17:51:30+08:00"
+    },
+    {
+      "EventID": "387290000H_001-01-4132800",
+      "EventTitle": "道路施工",
+      "Description": "鎮福段11地號新建工程(112-01918)",
+      "EventType": 2,
+      "EventSubType": 299,
+      "EventStep": 1,
+      "EffectiveTime": "2025-05-30T00:00:00+08:00",
+      "Positions": "POINT (120.626434381646 24.135764679024)",
+      "LocationType": 0,
+      "Location": {
+        "Other": "南屯區龍富十路"
+      },
+      "Source": "交通局-施工",
+      "PublishTime": "2025-05-31T17:51:30+08:00",
+      "LastUpdateTime": "2025-05-31T17:51:30+08:00"
+    },
+    {
+      "EventID": "387290000H_001-01-4132801",
+      "EventTitle": "道路施工",
+      "Description": "鎮福段11地號新建工程(112-01918)",
+      "EventType": 2,
+      "EventSubType": 299,
+      "EventStep": 1,
+      "EffectiveTime": "2025-05-30T00:00:00+08:00",
+      "Positions": "POINT (120.626695834729 24.1361760446176)",
+      "LocationType": 0,
+      "Location": {
+        "Other": "南屯區龍富十路"
+      },
+      "Source": "交通局-施工",
+      "PublishTime": "2025-05-31T17:51:30+08:00",
+      "LastUpdateTime": "2025-05-31T17:51:30+08:00"
+    },
+    {
+      "EventID": "387290000H_001-01-4132802",
+      "EventTitle": "道路施工",
+      "Description": "精銳建設(股)公司敦和段12地號店舖及集合住宅新建工程(110-02525)",
+      "EventType": 2,
+      "EventSubType": 299,
+      "EventStep": 1,
+      "EffectiveTime": "2025-05-30T00:00:00+08:00",
+      "Positions": "POINT (120.676849817197 24.1910076907673)",
+      "LocationType": 0,
+      "Location": {
+        "Other": "台中市北屯區敦和路與敦和三街口"
+      },
+      "Source": "交通局-施工",
+      "PublishTime": "2025-05-31T17:51:30+08:00",
+      "LastUpdateTime": "2025-05-31T17:51:30+08:00"
+    },
+    {
+      "EventID": "387290000H_001-01-4132803",
+      "EventTitle": "道路施工",
+      "Description": "惠昇建設南區頂橋子頭段0375之0004地號等3筆集合住宅新建工程(110-01243)",
+      "EventType": 2,
+      "EventSubType": 299,
+      "EventStep": 1,
+      "EffectiveTime": "2025-05-30T00:00:00+08:00",
+      "Positions": "POINT (120.672259729416 24.1291664584789)",
+      "LocationType": 0,
+      "Location": {
+        "Other": "新華街"
+      },
+      "Source": "交通局-施工",
+      "PublishTime": "2025-05-31T17:51:30+08:00",
+      "LastUpdateTime": "2025-05-31T17:51:30+08:00"
+    }
+  ]
+}

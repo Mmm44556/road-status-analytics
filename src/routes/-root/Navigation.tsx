@@ -1,4 +1,4 @@
-import React from "react";
+import React, { useState } from "react";
 import Tabs from "@mui/material/Tabs";
 import Box from "@mui/material/Box";
 import Tab from "@mui/material/Tab";
@@ -6,7 +6,7 @@ import { navigationItems } from "@/data/navigationItems";
 import { useNavigate } from "@tanstack/react-router";
 
 export default function Navigation() {
-  const [value, setValue] = React.useState(0);
+  const [value, setValue] = useState(0);
   const navigate = useNavigate();
   const handleChange = (event: React.SyntheticEvent, newValue: number) => {
     // event.type can be equal to focus with selectionFollowsFocus.
@@ -63,6 +63,7 @@ function NavItem(props: NavItemProps) {
         gap: "5px",
         alignItems: "center",
         justifyContent: "center",
+        fontSize: "1rem",
       }}
       onClick={(event: React.MouseEvent<HTMLAnchorElement, MouseEvent>) => {
         // Routing libraries handle this, you can remove the onClick handle when using them.

@@ -4,7 +4,7 @@ import PublicIcon from "@mui/icons-material/Public";
 
 export const navigationItems = [
   {
-    label: "Dashboard",
+    label: "Overview",
     icon: DashboardIcon,
     href: "/",
   },

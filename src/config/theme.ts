@@ -1,17 +1,14 @@
-import { blue, grey } from "@mui/material/colors"
-import { createTheme } from "@mui/material/styles"
+import { grey } from "@mui/material/colors";
+import { createTheme } from "@mui/material/styles";
 
 declare module "@mui/material/styles" {
   interface BreakpointOverrides {
-    "2xl": true
+    "2xl": true;
   }
 }
 
 export const theme = createTheme({
   palette: {
-    primary: {
-      main: "#fff",
-    },
     background: {
       default: grey[100],
     },
@@ -31,7 +28,7 @@ export const theme = createTheme({
       styleOverrides: {
         root: {
           "& .MuiTabs-indicator": {
-            backgroundColor: blue[600],
+            backgroundColor: grey[100],
             height: "2px",
           },
         },
@@ -47,4 +44,4 @@ export const theme = createTheme({
       },
     },
   },
-})
+});
