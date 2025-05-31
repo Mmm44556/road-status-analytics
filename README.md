@@ -31,9 +31,13 @@
 
 ## 主要資料來源
 
+資料來源說明:
+[https://tdx.transportdata.tw/data-standard/description]
+
 - 公路局: [https://thbapp.thb.gov.tw/opendata/](https://thbapp.thb.gov.tw/opendata/)
 - 說明: [https://motclink.gitbook.io/link/xi-tong-xiang-guan-wen-jian/api2](https://motclink.gitbook.io/link/xi-tong-xiang-guan-wen-jian/api2)
 - API:
+
   - 路段編碼: [Swagger](https://tdx.transportdata.tw/api-service/swagger/basic/e2718568-e098-4714-ac7d-7fa7d551e613#/Link/Link_GetLinkID)
   - 路段座標: [資料服務](https://tdx.transportdata.tw/data-service/basic)
   - 即時路況: [Swagger](https://tdx.transportdata.tw/api-service/swagger/basic/7f07d940-91a4-495d-9465-1c9df89d709c#/), [data.gov.tw](https://data.gov.tw/dataset/161170)
@@ -47,6 +51,8 @@
 - 交通部高速公路局交通資料庫: [https://tisvcloud.freeway.gov.tw/]
 
 - 歷年重大交通事故地點資料: [https://data.gov.tw/dataset/6132]
+
+- 即時性預告性資料書名: [https://drive.google.com/file/d/15rtxtf6-QC_K1plxEGuVq5SSDECCtje8/view]
 ---
 
 ## 頁面內容規劃

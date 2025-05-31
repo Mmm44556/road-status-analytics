@@ -19,6 +19,7 @@ import Slide from "@mui/material/Slide";
 import BrandMenu from "./BrandMenu";
 import Navigation from "./Navigation";
 import { navigationItems } from "@/data/navigationItems";
+import numberIntl from "@/utils/numberIntl";
 
 const drawerWidth = 240;
 const title = "RoadStat Analytics";
@@ -82,6 +83,10 @@ export default function DrawerAppBar() {
 
             {/* 導覽頁籤 */}
             <Navigation />
+
+            <Typography fontWeight={500} sx={{ marginLeft: "auto", fontSize: 16 }}>
+              瀏覽次數 {numberIntl(1000)}
+            </Typography>
           </Toolbar>
         </AppBar>
       </HideOnScroll>

@@ -3,6 +3,9 @@
 @import "@fontsource/roboto/500.css";
 @import "@fontsource/roboto/700.css";
 
+* {
+  font-variant-numeric: tabular-nums;
+}
 html {
   height: 100dvh;
 }

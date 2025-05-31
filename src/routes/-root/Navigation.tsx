@@ -1,13 +1,13 @@
-import React from "react"
-import Tabs from "@mui/material/Tabs"
-import Box from "@mui/material/Box"
-import Tab from "@mui/material/Tab"
-import { navigationItems } from "@/data/navigationItems"
-import { useNavigate } from "@tanstack/react-router"
+import React, { useState } from "react";
+import Tabs from "@mui/material/Tabs";
+import Box from "@mui/material/Box";
+import Tab from "@mui/material/Tab";
+import { navigationItems } from "@/data/navigationItems";
+import { useNavigate } from "@tanstack/react-router";
 
 export default function Navigation() {
-  const [value, setValue] = React.useState(0)
-  const navigate = useNavigate()
+  const [value, setValue] = useState(0);
+  const navigate = useNavigate();
   const handleChange = (event: React.SyntheticEvent, newValue: number) => {
     // event.type can be equal to focus with selectionFollowsFocus.
     if (
@@ -17,18 +17,18 @@ export default function Navigation() {
           event as React.MouseEvent<HTMLAnchorElement, MouseEvent>
         ))
     ) {
-      setValue(newValue)
-      navigate({ to: navigationItems[newValue].href })
+      setValue(newValue);
+      navigate({ to: navigationItems[newValue].href });
     }
-  }
+  };
 
   return (
     <Box sx={{ display: { xs: "none", sm: "block" } }}>
       <Tabs
         value={value}
         onChange={handleChange}
-        aria-label='nav tabs example'
-        role='navigation'
+        aria-label="nav tabs example"
+        role="navigation"
       >
         {navigationItems.map((item, index) => (
           <NavItem
@@ -44,19 +44,19 @@ export default function Navigation() {
         ))}
       </Tabs>
     </Box>
-  )
+  );
 }
 
 interface NavItemProps {
-  label?: React.ReactNode
-  href?: string
-  selected?: boolean
+  label?: React.ReactNode;
+  href?: string;
+  selected?: boolean;
 }
 
 function NavItem(props: NavItemProps) {
   return (
     <Tab
-      component='a'
+      component="a"
       sx={{
         height: "76px",
         flexDirection: "row",
@@ -68,13 +68,13 @@ function NavItem(props: NavItemProps) {
       onClick={(event: React.MouseEvent<HTMLAnchorElement, MouseEvent>) => {
         // Routing libraries handle this, you can remove the onClick handle when using them.
         if (samePageLinkNavigation(event)) {
-          event.preventDefault()
+          event.preventDefault();
         }
       }}
       aria-current={props.selected && "page"}
       {...props}
     />
-  )
+  );
 }
 
 function samePageLinkNavigation(
@@ -88,7 +88,7 @@ function samePageLinkNavigation(
     event.altKey ||
     event.shiftKey
   ) {
-    return false
+    return false;
   }
-  return true
+  return true;
 }

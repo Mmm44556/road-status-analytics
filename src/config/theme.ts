@@ -1,9 +1,9 @@
-import { grey } from "@mui/material/colors"
-import { createTheme } from "@mui/material/styles"
+import { grey } from "@mui/material/colors";
+import { createTheme } from "@mui/material/styles";
 
 declare module "@mui/material/styles" {
   interface BreakpointOverrides {
-    "2xl": true
+    "2xl": true;
   }
 }
 
@@ -44,4 +44,4 @@ export const theme = createTheme({
       },
     },
   },
-})
+});

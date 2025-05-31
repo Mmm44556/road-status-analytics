@@ -1,9 +1,10 @@
-import React, { useEffect, useRef } from "react";
+import { useEffect, useRef } from "react";
 import * as echarts from "echarts";
+import MyPaper from "@/components/MyPaper";
 
-const GeoPreviewMap = ({ height = "400px" }) => {
+const GeoPreviewMap = ({ height = "100%" }) => {
   const chartRef = useRef(null);
-  let chartInstance = null;
+  let chartInstance: echarts.EChartsType | null = null;
 
   useEffect(() => {
     // 初始化圖表
@@ -48,11 +49,6 @@ const GeoPreviewMap = ({ height = "400px" }) => {
 
           // 設置圖表選項
           const option = {
-            title: {
-              text: "即時路況擁塞水準",
-              subtext: "數據僅供示範使用",
-              left: "right",
-            },
             tooltip: {
               trigger: "item",
               showDelay: 0,
@@ -121,12 +117,12 @@ const GeoPreviewMap = ({ height = "400px" }) => {
           };
 
           // 應用選項
-          chartInstance.hideLoading();
-          chartInstance.setOption(option);
+          chartInstance?.hideLoading();
+          chartInstance?.setOption(option);
         })
         .catch((error) => {
           console.error("加載GeoJSON數據時出錯:", error);
-          chartInstance.hideLoading();
+          chartInstance?.hideLoading();
         });
     }
 
@@ -154,9 +150,9 @@ const GeoPreviewMap = ({ height = "400px" }) => {
   }, []);
 
   return (
-    <div>
+    <MyPaper sx={{ height: "100%" }}>
       <div ref={chartRef} style={{ width: "100%", height, margin: "0 auto" }} />
-    </div>
+    </MyPaper>
   );
 };
 
