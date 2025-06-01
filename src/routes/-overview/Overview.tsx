@@ -7,6 +7,7 @@ import AnalyticsCard from "./-components/AnalyticsCard";
 import OverviewSelect from "./-components/OverviewSelect";
 import Description from "./-components/Description";
 import AccidentCityRank from "./-components/AccidentCityRank";
+import A from "../../service/A";
 
 export default function Overview() {
   return (
@@ -39,7 +40,7 @@ export default function Overview() {
         >
           <OverviewSelect />
           <AnalyticsCard />
-          <GeoPreviewMap />
+          <A />
         </Grid>
 
         <Grid
