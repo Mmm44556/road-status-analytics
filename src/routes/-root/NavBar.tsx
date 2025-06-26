@@ -22,7 +22,7 @@ import { navigationItems } from "@/data/navigationItems";
 import numberIntl from "@/utils/numberIntl";
 
 const drawerWidth = 240;
-const title = "RoadStat Analytics";
+const title = "道路事件分析系統";
 
 export default function DrawerAppBar() {
   const [mobileOpen, setMobileOpen] = useState(false);

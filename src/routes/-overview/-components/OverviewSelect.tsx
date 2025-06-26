@@ -1,5 +1,6 @@
 import { memo, useState } from "react";
-import MySelect from "@/components/MySelect";
+import { addDays, format } from "date-fns";
+import MySelect, { type MySelectProps } from "@/components/MySelect";
 import ExpandMoreIcon from "@mui/icons-material/ExpandMore";
 import useGetComponentProps from "@/hooks/useGetComponentProps";
 import MyPaper from "@/components/MyPaper";
@@ -9,72 +10,132 @@ import { DateCalendar } from "@mui/x-date-pickers/DateCalendar";
 import { Box, Button, Typography } from "@mui/material";
 import { grey } from "@mui/material/colors";
 import KeyboardArrowDownIcon from "@mui/icons-material/KeyboardArrowDown";
-import { format, addDays } from "date-fns";
 import useWindowListener from "@/hooks/useEventListner";
+import { useGetSearchFormContext } from "@/hooks/useGetFormContext";
+import { Controller, FormProvider, useForm, useWatch } from "react-hook-form";
+import { searchSchema, type SearchFormType } from "@/zod";
+import { standardSchemaResolver } from "@hookform/resolvers/standard-schema";
 
 function OverviewSelect() {
-  const props = useGetComponentProps<typeof MySelect>({
-    IconComponent: ExpandMoreIcon,
-    sx: {
-      paddingLeft: 1,
-    },
-    slotProps: {
-      input: {
-        sx: {
-          padding: "4px",
-        },
-      },
+  const methods = useForm<SearchFormType>({
+    resolver: standardSchemaResolver(searchSchema),
+    defaultValues: {
+      startDate: addDays(new Date(), -30),
+      endDate: new Date(),
+      eventType: "",
+      city: "",
+      vehicleType: "",
     },
   });
+
+  const onSubmit = (data: SearchFormType) => {
+    console.log(data);
+  };
   return (
-    <MyPaper
-      sx={{
-        display: "flex",
-        alignItems: "center",
-      }}
-    >
-      <TimeRangeSelect />
-      <MySelect
-        options={[]}
-        onChange={() => {}}
-        placeholder="Accident Type"
-        value={""}
-        {...props}
-      />
-      <MySelect
-        options={[]}
-        onChange={() => {}}
-        placeholder="City"
-        value={""}
-        {...props}
-      />
-      <MySelect
-        options={[]}
-        onChange={() => {}}
-        placeholder="Vehicle Type"
-        value={""}
-        {...props}
-      />
-      <Button
-        variant="contained"
-        size="small"
-        sx={{
-          maxHeight: "31px",
-          width: 85,
-          marginLeft: 1,
-          bgcolor: grey[800],
-        }}
-      >
-        查詢
-      </Button>
-    </MyPaper>
+    <FormProvider {...methods}>
+      <form onSubmit={methods.handleSubmit(onSubmit)}>
+        <MyPaper
+          sx={{
+            display: "flex",
+            alignItems: "center",
+          }}
+        >
+          {/* 時間範圍選擇 */}
+          <TimeRangeSelect />
+
+          {/* 事件類型選擇 */}
+          <ControllerSelect
+            name="eventType"
+            options={[]}
+            placeholder="Accident Type"
+          />
+
+          {/* 城市選擇 */}
+          <ControllerSelect name="city" options={[]} placeholder="City" />
+
+          {/* 車輛類型選擇 */}
+          <ControllerSelect
+            name="vehicleType"
+            options={[]}
+            placeholder="Vehicle Type"
+          />
+
+          {/* 查詢按鈕 */}
+          <Button
+            type="submit"
+            variant="contained"
+            size="small"
+            sx={{
+              maxHeight: "31px",
+              width: 85,
+              marginLeft: 1,
+              bgcolor: grey[800],
+            }}
+          >
+            查詢
+          </Button>
+        </MyPaper>
+      </form>
+    </FormProvider>
   );
 }
 
+interface ControllerSelectProps
+  extends Omit<MySelectProps, "value" | "onChange"> {
+  name: keyof Omit<SearchFormType, "startDate" | "endDate">;
+  onChange?: (value: unknown) => void;
+}
+const ControllerSelect = memo(
+  ({
+    name,
+    options,
+    placeholder,
+    onChange,
+    ...props
+  }: ControllerSelectProps) => {
+    const { control } = useGetSearchFormContext();
+
+    const styleProps = useGetComponentProps<typeof MySelect>({
+      IconComponent: ExpandMoreIcon,
+      sx: {
+        paddingLeft: 1,
+      },
+      slotProps: {
+        input: {
+          sx: {
+            padding: "4px",
+          },
+        },
+      },
+    });
+    return (
+      <Controller
+        name={name}
+        control={control}
+        render={({ field }) => (
+          <MySelect
+            options={options}
+            onChange={(value) => {
+              field.onChange(value);
+              onChange?.(value);
+            }}
+            placeholder={placeholder}
+            value={field.value}
+            {...styleProps}
+            {...props}
+          />
+        )}
+      />
+    );
+  }
+);
+
 const TimeRangeSelect = memo(() => {
   const [open, setOpen] = useState(false);
-  const [startDate, setStartDate] = useState<Date | null>(new Date());
-  const [endDate, setEndDate] = useState<Date | null>(addDays(new Date(), 30));
+  const { control } = useGetSearchFormContext();
+  const startDate = useWatch({ control, name: "startDate" });
+  const endDate = useWatch({ control, name: "endDate" });
+
   useWindowListener([
     {
       event: "keydown",
@@ -141,30 +202,15 @@ const TimeRangeSelect = memo(() => {
             }}
             onClick={() => setOpen(false)}
           />
-          <DateCalendarValue
-            startDate={startDate}
-            endDate={endDate}
-            setStartDate={setStartDate}
-            setEndDate={setEndDate}
-          />
+          <DateCalendarValue />
         </>
       )}
     </Box>
   );
 });
 
-interface DateCalendarValueProps {
-  startDate: Date | null;
-  endDate: Date | null;
-  setStartDate: React.Dispatch<React.SetStateAction<Date | null>>;
-  setEndDate: React.Dispatch<React.SetStateAction<Date | null>>;
-}
-function DateCalendarValue({
-  startDate,
-  endDate,
-  setStartDate,
-  setEndDate,
-}: DateCalendarValueProps) {
+function DateCalendarValue() {
+  const { control } = useGetSearchFormContext();
   return (
     <LocalizationProvider dateAdapter={AdapterDateFns}>
       <Box
@@ -196,14 +242,26 @@ function DateCalendarValue({
           },
         }}
       >
-        <DateCalendar
-          value={startDate}
-          onChange={(newValue) => setStartDate(newValue)}
+        <Controller
+          name="startDate"
+          control={control}
+          render={({ field }) => (
+            <DateCalendar
+              value={field.value}
+              onChange={(newValue) => field.onChange(newValue)}
+            />
+          )}
         />
 
-        <DateCalendar
-          value={endDate}
-          onChange={(newValue) => setEndDate(newValue)}
+        <Controller
+          name="endDate"
+          control={control}
+          render={({ field }) => (
+            <DateCalendar
+              value={field.value}
+              onChange={(newValue) => field.onChange(newValue)}
+            />
+          )}
         />
       </Box>
     </LocalizationProvider>

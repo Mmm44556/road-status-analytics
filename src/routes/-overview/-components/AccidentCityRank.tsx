@@ -1,7 +1,7 @@
-import MyPaper from "@/components/MyPaper";
-
-import { BarChart } from "@mui/x-charts/BarChart";
 import { cityColorMap } from "@/config/cityTheme";
+import { ChartContainer } from "@mui/x-charts/ChartContainer";
+import { BarPlot } from "@mui/x-charts/BarChart";
+import { ChartsTooltip, ChartsXAxis, ChartsYAxis } from "@mui/x-charts";
 
 const dataset = [
   {
@@ -31,57 +31,36 @@ const dataset = [
   },
 ];
 
-const cityNames = dataset.map((item) => item.city);
-const values = dataset.map((item) => item.value);
-const colors = dataset.map((item) => item.color);
-const chartSetting: Partial<React.ComponentProps<typeof BarChart>> = {
-  xAxis: [
-    {
-      label: "交通事故數量",
-    },
-  ],
-  yAxis: [
-    {
-      scaleType: "band",
-      width: 50,
-      data: cityNames,
-      colorMap: {
-        type: "ordinal",
-        values: cityNames,
-        colors: colors,
-      },
-    },
-  ],
-
-  height: 400,
-  slotProps: {
-    legend: {
-      sx: {
-        fontSize: 16,
-        fontWeight: 600,
-      },
-    },
-  },
-};
 export function valueFormatter(value: number | null) {
+  if (value === null) return "";
   return `${value}件`;
 }
 
 export default function AccidentCityRank() {
   return (
-    <MyPaper>
-      <BarChart
-        series={[
-          {
-            data: values,
-            label: "交通事故城市排行",
-            color: "transparent",
-            valueFormatter,
-          },
-        ]}
-        layout="horizontal"
-        {...chartSetting}
-      />
-    </MyPaper>
+    <ChartContainer
+      dataset={dataset}
+      series={[
+        {
+          type: "bar",
+          dataKey: "value",
+          valueFormatter,
+          layout: "horizontal",
+        },
+      ]}
+      yAxis={[{ scaleType: "band", dataKey: "city", width: 50 }]}
+      sx={{
+        bgcolor: "white",
+        flex: 1,
+        "& .MuiChartsAxis-directionY .MuiChartsAxis-tickLabel": {
+          transform: "translateX(0px)",
+        },
+      }}
+    >
+      <BarPlot />
+      <ChartsXAxis label="交通事故數量" />
+      <ChartsYAxis />
+      <ChartsTooltip />
+    </ChartContainer>
   );
 }

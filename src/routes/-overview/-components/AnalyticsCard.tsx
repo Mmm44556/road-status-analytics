@@ -5,7 +5,8 @@ import Typography from "@mui/material/Typography";
 import CardActionArea from "@mui/material/CardActionArea";
 import numberIntl from "@/utils/numberIntl";
 import Box from "@mui/material/Box";
-import TouchAppIcon from '@mui/icons-material/TouchApp';      
+import TouchAppIcon from "@mui/icons-material/TouchApp";
+import { fontSize } from "@/config/theme";
 type CardItem = {
   title: string;
   value: number | string;
@@ -74,7 +75,7 @@ function AnalyticsCard() {
         variant="h6"
         component="h2"
         sx={{
-          fontSize: 18,
+          fontSize: fontSize,
           fontWeight: 600,
           marginBottom: 1,
         }}
@@ -109,7 +110,9 @@ function EventCard({ title, value, unit, prefix, slotStyle }: CardItem) {
         ...slotStyle?.card,
       }}
     >
-      <TouchAppIcon sx={{ position: "absolute", top: 10, right: 10 ,color:"#374151"}} />
+      <TouchAppIcon
+        sx={{ position: "absolute", top: 10, right: 10, color: "#374151" }}
+      />
       <CardActionArea sx={{ height: "100%" }}>
         <CardContent
           sx={{

@@ -26,8 +26,8 @@ function Description() {
       sx={{
         display: "flex",
         gap: 1,
-        height: "100%",
         alignItems: "center",
+        height: "10px",
       }}
     >
       <Chip onClick={() => {}} color="danger" variant="soft">
