@@ -13,7 +13,6 @@ import { LabelLayout, UniversalTransition } from "echarts/features";
 import { CanvasRenderer } from "echarts/renderers";
 import AccidentCityTitle from "./AccidentCityTitle";
 import type { EChartsOption } from "@/types/eChart";
-import mock_data from "../../../../../server/cacheMerged/accident_aggregated.json";
 import Box from "@mui/material/Box";
 import MyPaper from "@/components/MyPaper";
 import { cityColorMap } from "@/config/cityTheme";
@@ -66,16 +65,13 @@ const AccidentCityChart = () => {
     if (!chartInstance.current) return;
 
     const allDates = Array.from(
-      new Set(mock_data.map((item) => item.date))
+      new Set([])
     ).sort();
-    const allCities = Array.from(new Set(mock_data.map((item) => item.city)));
+    const allCities = Array.from(new Set([]));
 
     const citySeries = allCities.map((city) => {
       const data = allDates.map((date) => {
-        const found = mock_data.find(
-          (item) => item.city === city && item.date === date
-        );
-        return found ? found.total : undefined; // 不補 0
+        return 0; // 不補 0
       });
 
       return {

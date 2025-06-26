@@ -3,4 +3,10 @@ type Option = {
   value: string;
 };
 
-export type { Option };
+type Icon = {
+  width: number;
+  height: number;
+  fill: string;
+};
+
+export type { Option, Icon };

@@ -3,7 +3,7 @@ import FormControl from "@mui/material/FormControl";
 import Select, { type SelectProps } from "@mui/material/Select";
 import type { Option } from "@/types";
 
-interface MySelectProps {
+export interface MySelectProps {
   options: Option[];
   onChange: (value: unknown) => void;
   value: unknown;

@@ -1,17 +1,28 @@
 import DirectionsIcon from "@mui/icons-material/Directions";
 import CarCrashIcon from "@mui/icons-material/CarCrash";
-import FrontLoaderIcon from "@mui/icons-material/FrontLoader";
 import AirIcon from "@mui/icons-material/Air";
 import FloodIcon from "@mui/icons-material/Flood";
 import GroupsIcon from "@mui/icons-material/Groups";
 import WarningIcon from "@mui/icons-material/Warning";
 import AltRouteIcon from "@mui/icons-material/AltRoute";
-import { orange, blue, grey, green, red } from "@mui/material/colors";
+import { orange, blue, grey, green, red, brown } from "@mui/material/colors";
+import { getSvgData } from "@/utils/getSvgPath";
+import {
+  paintPathToIcon,
+  paintPathToConstructionWorker,
+} from "@/utils/paintSVG";
+import type { SvgIcon } from "@mui/material";
+import ConstructionWorker from "@/components/icons/ConstructionWorker";
+
 const tdx_event_classification: EventClassification = {
   "1": {
     name: "交通事故",
     Icon: CarCrashIcon,
     iconColor: red[500],
+    iconDataUri: paintPathToIcon({
+      content: getSvgData(<CarCrashIcon />).content,
+      fill: red[500],
+    }),
     subtypes: {
       "101": "人與汽(機)車事故",
       "102": "車與車事故",
@@ -25,8 +36,11 @@ const tdx_event_classification: EventClassification = {
   },
   "2": {
     name: "施工",
-    Icon: FrontLoaderIcon,
-    iconColor: grey[500],
+    Icon: ConstructionWorker,
+    iconColor: brown[500],
+    iconDataUri: paintPathToConstructionWorker({
+      fill: brown[500],
+    }),
     subtypes: {
       "201": "佈纜施工",
       "202": "鋪磨施工",
@@ -47,6 +61,10 @@ const tdx_event_classification: EventClassification = {
     name: "壅塞",
     Icon: DirectionsIcon,
     iconColor: orange[500],
+    iconDataUri: paintPathToIcon({
+      content: getSvgData(<DirectionsIcon />).content,
+      fill: orange[500],
+    }),
     subtypes: {
       "301": "車多",
       "302": "壅塞",
@@ -57,7 +75,11 @@ const tdx_event_classification: EventClassification = {
   "4": {
     name: "特殊管制",
     Icon: AltRouteIcon,
-    iconColor: "#000",
+    iconColor: grey[500],
+    iconDataUri: paintPathToIcon({
+      content: getSvgData(<AltRouteIcon />).content,
+      fill: grey[500],
+    }),
     subtypes: {
       "401": "航運",
       "402": "預警性封閉",
@@ -71,6 +93,10 @@ const tdx_event_classification: EventClassification = {
     name: "天氣",
     Icon: AirIcon,
     iconColor: blue[500],
+    iconDataUri: paintPathToIcon({
+      content: getSvgData(<AirIcon />).content,
+      fill: blue[500],
+    }),
     subtypes: {
       "501": "濃霧",
       "502": "豪雨",
@@ -88,7 +114,11 @@ const tdx_event_classification: EventClassification = {
   "6": {
     name: "災害",
     Icon: FloodIcon,
-    iconColor: "warning.main",
+    iconColor: orange[500],
+    iconDataUri: paintPathToIcon({
+      content: getSvgData(<FloodIcon />).content,
+      fill: orange[500],
+    }),
     subtypes: {
       "601": "地震",
       "602": "海嘯",
@@ -109,6 +139,10 @@ const tdx_event_classification: EventClassification = {
     name: "活動",
     Icon: GroupsIcon,
     iconColor: green[500],
+    iconDataUri: paintPathToIcon({
+      content: getSvgData(<GroupsIcon />).content,
+      fill: green[500],
+    }),
     subtypes: {
       "701": "學術",
       "702": "藝文",
@@ -126,7 +160,11 @@ const tdx_event_classification: EventClassification = {
   "8": {
     name: "其他異常專案",
     Icon: WarningIcon,
-    iconColor: "warning.main",
+    iconColor: red[500],
+    iconDataUri: paintPathToIcon({
+      content: getSvgData(<WarningIcon />).content,
+      fill: red[500],
+    }),
     subtypes: {
       "801": "散落物",
       "802": "路面損壞",
@@ -151,8 +189,9 @@ const tdx_event_classification: EventClassification = {
 export type EventClassification = {
   [key: string]: {
     name: string;
-    Icon: React.ElementType | null;
+    Icon: typeof SvgIcon | React.ElementType;
     iconColor: string;
+    iconDataUri: string;
     subtypes: {
       [key: string]: string;
     };
@@ -177,6 +216,7 @@ export default function getEventDescription(
       subtype: subtype || "未知子類型",
       Icon: classification.Icon,
       iconColor: classification.iconColor,
+      iconDataUri: classification.iconDataUri,
     };
   }
   return {
