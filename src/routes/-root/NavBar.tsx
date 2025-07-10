@@ -20,6 +20,11 @@ import BrandMenu from "./BrandMenu";
 import Navigation from "./Navigation";
 import { navigationItems } from "@/data/navigationItems";
 import numberIntl from "@/utils/numberIntl";
+import CampaignIcon from "@mui/icons-material/Campaign";
+import { blue } from "@mui/material/colors";
+import DialogTitle from "@mui/material/DialogTitle";
+import Dialog from "@mui/material/Dialog";
+import BroadCast from "./BroadCast";
 
 const drawerWidth = 240;
 const title = "道路事件分析系統";
@@ -84,9 +89,22 @@ export default function DrawerAppBar() {
             {/* 導覽頁籤 */}
             <Navigation />
 
-            <Typography fontWeight={500} sx={{ marginLeft: "auto", fontSize: 16 }}>
-              瀏覽次數 {numberIntl(1000)}
-            </Typography>
+            <Box
+              sx={{
+                marginLeft: "auto",
+                display: "flex",
+                alignItems: "center",
+                gap: 1.5,
+              }}
+            >
+              {/* 最新道路消息 */}
+              <BroadCast />
+              
+              {/* 瀏覽次數 */}
+              <Typography fontWeight={500}>
+                瀏覽次數 {numberIntl(1000)}
+              </Typography>
+            </Box>
           </Toolbar>
         </AppBar>
       </HideOnScroll>
