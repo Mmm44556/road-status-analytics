@@ -1,24 +1,7 @@
 import * as React from "react";
-import {
-  styled,
-  useTheme,
-  type Theme,
-  type CSSObject,
-} from "@mui/material/styles";
-import Box from "@mui/material/Box";
+import { styled, type Theme, type CSSObject } from "@mui/material/styles";
 import MuiDrawer from "@mui/material/Drawer";
-import MuiAppBar, {
-  type AppBarProps as MuiAppBarProps,
-} from "@mui/material/AppBar";
-import Toolbar from "@mui/material/Toolbar";
 import List from "@mui/material/List";
-import CssBaseline from "@mui/material/CssBaseline";
-import Typography from "@mui/material/Typography";
-import Divider from "@mui/material/Divider";
-import IconButton from "@mui/material/IconButton";
-import MenuIcon from "@mui/icons-material/Menu";
-import ChevronLeftIcon from "@mui/icons-material/ChevronLeft";
-import ChevronRightIcon from "@mui/icons-material/ChevronRight";
 import ListItem from "@mui/material/ListItem";
 import ListItemButton from "@mui/material/ListItemButton";
 import ListItemIcon from "@mui/material/ListItemIcon";
@@ -32,9 +15,9 @@ import CarCrashIcon from "@mui/icons-material/CarCrash";
 import ConstructionIcon from "@mui/icons-material/Construction";
 import AirIcon from "@mui/icons-material/Air";
 import FloodIcon from "@mui/icons-material/Flood";
-import { blue } from "@mui/material/colors";
+import ChevronLeftIcon from "@mui/icons-material/ChevronLeft";
 
-const drawerWidth = 240;
+const drawerWidth = 200;
 
 const openedMixin = (theme: Theme): CSSObject => ({
   width: drawerWidth,
@@ -53,7 +36,7 @@ const closedMixin = (theme: Theme): CSSObject => ({
   overflowX: "hidden",
   width: `calc(${theme.spacing(7)} + 1px)`,
   [theme.breakpoints.up("sm")]: {
-    width: `calc(${theme.spacing(8)} + 1px)`,
+    width: `calc(${theme.spacing(7)} + 1px)`,
   },
 });
 
@@ -81,7 +64,7 @@ const Drawer = styled(MuiDrawer, {
     },
   ],
 }));
-const iconSize = 32;
+const iconSize = 28;
 
 const IconItems = [
   {
@@ -123,7 +106,6 @@ const IconItems = [
 ];
 
 export default function MyDrawer() {
-  const theme = useTheme();
   const [open, setOpen] = React.useState(false);
 
   const handleDrawerOpen = () => {
@@ -131,103 +113,100 @@ export default function MyDrawer() {
   };
 
   return (
-    <Box>
-      <Drawer
-        variant="permanent"
-        open={open}
-        slotProps={{
-          paper: {
-            sx: {
-              position: "absolute",
-              top: 50,
-
-              height: "auto",
-              borderRadius: 10,
-            },
+    <Drawer
+      variant="permanent"
+      open={open}
+      slotProps={{
+        paper: {
+          sx: {
+            position: "absolute",
+            height: "auto",
+            borderRadius: 10,
           },
+        },
+      }}
+    >
+      <List
+        sx={{
+          pt: 0,
         }}
       >
-        <List>
-          <ListItem
-            sx={{
-              backgroundColor: "#fff",
-
-              "&:hover": {
-                backgroundColor: "transparent",
-              },
-            }}
-          >
-            <ListItemButton
-              onClick={handleDrawerOpen}
+        <ListItem
+          sx={{
+            backgroundColor: "#fff",
+            p: 0,
+            "&:hover": {
+              backgroundColor: "transparent",
+            },
+          }}
+        >
+          <ListItemButton onClick={handleDrawerOpen}>
+            <ListItemIcon
               sx={{
-                minHeight: 48,
+                minWidth: "auto",
+                ml: "auto",
               }}
             >
-              <ListItemIcon
+              <ChevronLeftIcon
                 sx={{
-                  position: "absolute",
-                  top: 10,
-                  right: 0,
-                  transform: "translateX(50%)",
-                  zIndex: 1000,
+                  transform: open ? "rotate(-180deg)" : "rotate(0deg)",
+                  transition: "transform 0.3s ease-in-out",
                 }}
-              >
-                {open ? <ChevronLeftIcon /> : <ChevronRightIcon />}
-              </ListItemIcon>
-            </ListItemButton>
-          </ListItem>
+              />
+            </ListItemIcon>
+          </ListItemButton>
+        </ListItem>
 
-          {IconItems.map((text, index) => (
-            <ListItem key={index} disablePadding sx={{ display: "block" }}>
-              <ListItemButton
+        {IconItems.map((text, index) => (
+          <ListItem key={index} disablePadding sx={{ display: "block" }}>
+            <ListItemButton
+              sx={[
+                {
+                  minHeight: 20,
+                  px: 2,
+                },
+                open
+                  ? {
+                      justifyContent: "initial",
+                    }
+                  : {
+                      justifyContent: "center",
+                    },
+              ]}
+            >
+              <ListItemIcon
                 sx={[
                   {
-                    minHeight: 48,
-                    px: 2.5,
+                    minWidth: 0,
+                    justifyContent: "center",
                   },
                   open
                     ? {
-                        justifyContent: "initial",
+                        mr: 3,
                       }
                     : {
-                        justifyContent: "center",
+                        mr: "auto",
                       },
                 ]}
               >
-                <ListItemIcon
-                  sx={[
-                    {
-                      minWidth: 0,
-                      justifyContent: "center",
-                    },
-                    open
-                      ? {
-                          mr: 3,
-                        }
-                      : {
-                          mr: "auto",
-                        },
-                  ]}
-                >
-                  {text.icon}
-                </ListItemIcon>
-                <ListItemText
-                  primary={text.label}
-                  sx={[
-                    open
-                      ? {
-                          opacity: 1,
-                        }
-                      : {
-                          opacity: 0,
-                        },
-                  ]}
-                />
-              </ListItemButton>
-            </ListItem>
-          ))}
-        </List>
-      </Drawer>
-    </Box>
+                {text.icon}
+              </ListItemIcon>
+              <ListItemText
+                primary={text.label}
+                sx={[
+                  open
+                    ? {
+                        opacity: 1,
+                      }
+                    : {
+                        opacity: 0,
+                      },
+                ]}
+              />
+            </ListItemButton>
+          </ListItem>
+        ))}
+      </List>
+    </Drawer>
   );
 }
