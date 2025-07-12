@@ -1,4 +1,6 @@
-Flask
-requests
 fastapi
-uvicorn 
+uvicorn
+pydantic
+requests
+python-dotenv
+pandas

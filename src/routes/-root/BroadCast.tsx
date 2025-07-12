@@ -14,185 +14,19 @@ import { blue, grey } from "@mui/material/colors";
 import IconButton from "@mui/material/IconButton";
 import CloseIcon from "@mui/icons-material/Close";
 import { motion } from "framer-motion";
+import provinceHightWayMsg from "@/mock/provinceHightWayMsg.json";
+import mock_cityTrafficEventMsg from "@/mock/cityTrafficEventMsg.json";
 /**
  * API:
+ *
+ * 取得用戶所在縣市:
+ * 縣市事件:
  * https://tdx.transportdata.tw/api/basic/v2/Road/Traffic/Live/News/City/{{city}}?$top=30&$format=JSON
+ *
+ * 沒取得縣市，使用公路局省道事件
  *
  *
  */
-
-const mock_messages = {
-  UpdateTime: "2025-07-09T02:02:41+08:00",
-  UpdateInterval: 60,
-  SrcUpdateTime: "2025-07-09T02:01:29+08:00",
-  SrcUpdateInterval: -1,
-  AuthorityCode: "TXG",
-  Newses: [
-    {
-      NewsID: "20250625103327",
-      Language: "Zh_tw",
-      Department: "台中市交通局",
-      Title: "平台事件",
-      NewsCategory: 4,
-      Description: "中清路 雙向 大鵬路口 外側  施工三角錐擺放，小心駕駛",
-      NewsURL: "http://e-traffic.taichung.gov.tw",
-      PublishTime: "2025-07-10T02:01:29+08:00",
-      UpdateTime: "2025-07-10T02:01:29+08:00",
-    },
-    {
-      NewsID: "G7316",
-      Language: "Zh_tw",
-      Department: "台中市交通局",
-      Title: "市府公告",
-      NewsCategory: 4,
-      Description:
-        "114年7月10日10時00分~15時00分\r\n台74 東西向 0K+000~37K+000 外側一車道 施工 , 請小心駕駛",
-      NewsURL: "http://e-traffic.taichung.gov.tw",
-      PublishTime: "2025-07-10T02:01:29+08:00",
-      UpdateTime: "2025-07-10T02:01:29+08:00",
-    },
-    {
-      NewsID: "G7314",
-      Language: "Zh_tw",
-      Department: "台中市交通局",
-      Title: "市府公告",
-      NewsCategory: 4,
-      Description:
-        "114/7/7~7/11、7/14~7/18、7/21~7/25、7/28~8/1 每日21時至隔日6時，台74東向 10K外車道及環中路跨台12線台灣大道機車上匝道，進行隔音牆施工作業封閉管制",
-      NewsURL: "http://e-traffic.taichung.gov.tw",
-      PublishTime: "2025-07-10T02:01:29+08:00",
-      UpdateTime: "2025-07-10T02:01:29+08:00",
-    },
-    {
-      NewsID: "G7304",
-      Language: "Zh_tw",
-      Department: "台中市交通局",
-      Title: "市府公告",
-      NewsCategory: 4,
-      Description:
-        "114年8月2日4時-20時\r\n西屯區 青海路二段(洛陽路-文心路三段)道路封閉施工,請小心駕駛",
-      NewsURL: "http://e-traffic.taichung.gov.tw",
-      PublishTime: "2025-07-10T02:01:29+08:00",
-      UpdateTime: "2025-07-10T02:01:29+08:00",
-    },
-    {
-      NewsID: "G7302",
-      Language: "Zh_tw",
-      Department: "台中市交通局",
-      Title: "市府公告",
-      NewsCategory: 1,
-      Description:
-        "114年7月2日-7月10日 ,每日20時~翌日04時30分\r\n台74 西向  往烏日 13.5K-14.5K(中青地下道) 內+外側 移動性施工   , 請改道行駛",
-      NewsURL: "http://e-traffic.taichung.gov.tw",
-      PublishTime: "2025-07-10T02:01:29+08:00",
-      UpdateTime: "2025-07-10T02:01:29+08:00",
-    },
-    {
-      NewsID: "G7309",
-      Language: "Zh_tw",
-      Department: "台中市交通局",
-      Title: "市府公告",
-      NewsCategory: 4,
-      Description:
-        "114年7月1日00:00~7月31日 00:00~24:00 (掉落物處理)\r\n114年7月3、10、17、24、31日 08:0-16:30(垃圾撿拾及路面清掃)\r\n台74 0k+000~37K+860 東西向 移動性施工,請小心駕駛",
-      NewsURL: "http://e-traffic.taichung.gov.tw",
-      PublishTime: "2025-07-10T02:01:29+08:00",
-      UpdateTime: "2025-07-10T02:01:29+08:00",
-    },
-    {
-      NewsID: "G7256",
-      Language: "Zh_tw",
-      Department: "台中市交通局",
-      Title: "市府公告",
-      NewsCategory: 1,
-      Description:
-        "114年4月9日起封閉台74線西行大里路段 32K+360~32K+795外側車道，並配合工程期程，預計封閉至115年3月(以實際竣工日為準)，請用路人配合交通管制措施小心行駛。",
-      NewsURL: "http://e-traffic.taichung.gov.tw",
-      PublishTime: "2025-07-10T02:01:29+08:00",
-      UpdateTime: "2025-07-10T02:01:29+08:00",
-    },
-    {
-      NewsID: "G6782",
-      Language: "Zh_tw",
-      Department: "台中市交通局",
-      Title: "市府公告",
-      NewsCategory: 1,
-      Description:
-        "113年6月4日起封閉台74線東行大里路段29K+400~29K+800外側車道，並配合「台74線（26K~30K）東昇里路段增設匝道工程」，預計封閉至114年7月(以實際竣工日為準)，請用路人配合交通管制措施小心行駛。",
-      NewsURL: "http://e-traffic.taichung.gov.tw",
-      PublishTime: "2025-07-10T02:01:29+08:00",
-      UpdateTime: "2025-07-10T02:01:29+08:00",
-    },
-    {
-      NewsID: "20250416142521",
-      Language: "Zh_tw",
-      Department: "台中市交通局",
-      Title: "平台事件",
-      NewsCategory: 4,
-      Description: "健行路 往崇德路方向 中清路前 外側施工，請小心慢行",
-      NewsURL: "http://e-traffic.taichung.gov.tw",
-      PublishTime: "2025-07-10T02:01:29+08:00",
-      UpdateTime: "2025-07-10T02:01:29+08:00",
-    },
-    {
-      NewsID: "20250527100207",
-      Language: "Zh_tw",
-      Department: "台中市交通局",
-      Title: "平台事件",
-      NewsCategory: 4,
-      Description:
-        "崇德路 雙向 健行路 至 進化北路 內側 施工 及 崇德路 往大雅方向 外側 施工，請小心慢行",
-      NewsURL: "http://e-traffic.taichung.gov.tw",
-      PublishTime: "2025-07-10T02:01:29+08:00",
-      UpdateTime: "2025-07-10T02:01:29+08:00",
-    },
-    {
-      NewsID: "20250625070640",
-      Language: "Zh_tw",
-      Department: "台中市交通局",
-      Title: "平台事件",
-      NewsCategory: 4,
-      Description: "黎明路 往青海路方向 近上安路 外側 施工圍籬擺放，小心駕駛",
-      NewsURL: "http://e-traffic.taichung.gov.tw",
-      PublishTime: "2025-07-10T02:01:29+08:00",
-      UpdateTime: "2025-07-10T02:01:29+08:00",
-    },
-
-    {
-      NewsID: "20250705125758",
-      Language: "Zh_tw",
-      Department: "台中市交通局",
-      Title: "平台事件",
-      NewsCategory: 4,
-      Description: "西屯路過忠明路路段，施工，請小心慢行",
-      NewsURL: "http://e-traffic.taichung.gov.tw",
-      PublishTime: "2025-07-10T02:01:29+08:00",
-      UpdateTime: "2025-07-10T02:01:29+08:00",
-    },
-    {
-      NewsID: "20250708154246",
-      Language: "Zh_tw",
-      Department: "台中市交通局",
-      Title: "平台事件",
-      NewsCategory: 4,
-      Description: "五權西路 與 美村路 雙向 路口 外側 施工，請小心慢行",
-      NewsURL: "http://e-traffic.taichung.gov.tw",
-      PublishTime: "2025-07-10T02:01:29+08:00",
-      UpdateTime: "2025-07-10T02:01:29+08:00",
-    },
-    {
-      NewsID: "20250708155624",
-      Language: "Zh_tw",
-      Department: "台中市交通局",
-      Title: "平台事件",
-      NewsCategory: 4,
-      Description: "五權西路 往工業區方向 東興路口 外側 施工，請小心慢行",
-      NewsURL: "http://e-traffic.taichung.gov.tw",
-      PublishTime: "2025-07-10T02:01:29+08:00",
-      UpdateTime: "2025-07-10T02:01:29+08:00",
-    },
-  ],
-};
 
 export interface SimpleDialogProps {
   open: boolean;
@@ -224,7 +58,10 @@ function BroadCastDialog(props: SimpleDialogProps) {
         sx={{
           backgroundColor: blue[600],
           color: "#fff",
-          fontSize: 22,
+          fontSize: {
+            xl: 20,
+            "2xl": 22,
+          },
           fontWeight: "bold",
           display: "flex",
           alignItems: "center",
@@ -252,7 +89,7 @@ function BroadCastDialog(props: SimpleDialogProps) {
         }}
       >
         <List>
-          {mock_messages.Newses.map((message) => (
+          {mock_cityTrafficEventMsg.Newses.map((message) => (
             <>
               <ListItem key={message.NewsID}>
                 <ListItemText
@@ -271,6 +108,15 @@ function BroadCastDialog(props: SimpleDialogProps) {
     </Dialog>
   );
 }
+
+const iconSize = {
+  xl: 36,
+  "2xl": 46,
+};
+const defaultSize = {
+  xl: iconSize.xl,
+  "2xl": iconSize["2xl"],
+};
 
 export default function BroadCast() {
   const [open, setOpen] = useState(false);
@@ -300,11 +146,10 @@ export default function BroadCast() {
           color: "#fff",
           backgroundColor: grey[600],
           borderRadius: "100%",
-          width: 42,
-          height: 42,
-          minWidth: 42,
-          minHeight: 42,
-
+          width: defaultSize,
+          height: defaultSize,
+          minWidth: defaultSize,
+          minHeight: defaultSize,
           display: "flex",
           alignItems: "center",
           justifyContent: "center",
@@ -313,7 +158,12 @@ export default function BroadCast() {
           },
         }}
       >
-        <CampaignIcon sx={{ fontSize: 42, color: "#fff" }} />
+        <CampaignIcon
+          sx={{
+            fontSize: defaultSize,
+            color: "#fff",
+          }}
+        />
       </Button>
       <BroadCastCarousel />
       <BroadCastDialog open={open} onClose={handleClose} />
@@ -324,7 +174,7 @@ export default function BroadCast() {
 function BroadCastCarousel() {
   const [current, setCurrent] = useState(0);
   const [startMarquee, setStartMarquee] = useState(false);
-  const messages = mock_messages.Newses;
+  const messages = mock_cityTrafficEventMsg.Newses;
   const [contentWidth, setContentWidth] = useState(0);
   const contentRef = useRef<HTMLDivElement>(null);
   const containerRef = useRef<HTMLDivElement>(null);
@@ -367,7 +217,10 @@ function BroadCastCarousel() {
       sx={{
         width: "450px",
         overflow: "hidden",
-        minHeight: 60,
+        minHeight: {
+          xl: 48,
+          "2xl": 60,
+        },
         display: "flex",
         alignItems: "center",
         justifyContent: "center",
@@ -382,7 +235,14 @@ function BroadCastCarousel() {
         onAnimationComplete={handleAnimationComplete}
         style={{ whiteSpace: "nowrap", display: "inline-block" }}
       >
-        <Typography color="text.primary" component="span" fontSize={18}>
+        <Typography
+          color="text.primary"
+          component="span"
+          fontSize={{
+            xl: 18,
+            "2xl": 22,
+          }}
+        >
           {messages[current].Description}
         </Typography>
       </motion.div>

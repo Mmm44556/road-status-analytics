@@ -101,9 +101,9 @@ export default function DrawerAppBar() {
               <BroadCast />
               
               {/* 瀏覽次數 */}
-              <Typography fontWeight={500}>
+              {/* <Typography fontWeight={500}>
                 瀏覽次數 {numberIntl(1000)}
-              </Typography>
+              </Typography> */}
             </Box>
           </Toolbar>
         </AppBar>

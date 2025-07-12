@@ -8,127 +8,88 @@
 // You should NOT make any changes in this file as it will be overwritten.
 // Additionally, you should also exclude this file from your linter and/or formatter to prevent it from being checked or modified.
 
-// Import Routes
+import { Route as rootRouteImport } from './routes/__root'
+import { Route as MapsRouteRouteImport } from './routes/maps/route'
+import { Route as AnalyticsRouteRouteImport } from './routes/analytics/route'
+import { Route as IndexRouteImport } from './routes/index'
 
-import { Route as rootRoute } from "./routes/__root";
-import { Route as MapsRouteImport } from "./routes/maps/route";
-import { Route as AnalyticsRouteImport } from "./routes/analytics/route";
-import { Route as IndexImport } from "./routes/index";
-
-// Create/Update Routes
-
-const MapsRouteRoute = MapsRouteImport.update({
-  id: "/maps",
-  path: "/maps",
-  getParentRoute: () => rootRoute,
-} as any);
-
-const AnalyticsRouteRoute = AnalyticsRouteImport.update({
-  id: "/analytics",
-  path: "/analytics",
-  getParentRoute: () => rootRoute,
-} as any);
-
-const IndexRoute = IndexImport.update({
-  id: "/",
-  path: "/",
-  getParentRoute: () => rootRoute,
-} as any);
-
-// Populate the FileRoutesByPath interface
-
-declare module "@tanstack/react-router" {
-  interface FileRoutesByPath {
-    "/": {
-      id: "/";
-      path: "/";
-      fullPath: "/";
-      preLoaderRoute: typeof IndexImport;
-      parentRoute: typeof rootRoute;
-    };
-    "/analytics": {
-      id: "/analytics";
-      path: "/analytics";
-      fullPath: "/analytics";
-      preLoaderRoute: typeof AnalyticsRouteImport;
-      parentRoute: typeof rootRoute;
-    };
-    "/maps": {
-      id: "/maps";
-      path: "/maps";
-      fullPath: "/maps";
-      preLoaderRoute: typeof MapsRouteImport;
-      parentRoute: typeof rootRoute;
-    };
-  }
-}
-
-// Create and export the route tree
+const MapsRouteRoute = MapsRouteRouteImport.update({
+  id: '/maps',
+  path: '/maps',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const AnalyticsRouteRoute = AnalyticsRouteRouteImport.update({
+  id: '/analytics',
+  path: '/analytics',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const IndexRoute = IndexRouteImport.update({
+  id: '/',
+  path: '/',
+  getParentRoute: () => rootRouteImport,
+} as any)
 
 export interface FileRoutesByFullPath {
-  "/": typeof IndexRoute;
-  "/analytics": typeof AnalyticsRouteRoute;
-  "/maps": typeof MapsRouteRoute;
+  '/': typeof IndexRoute
+  '/analytics': typeof AnalyticsRouteRoute
+  '/maps': typeof MapsRouteRoute
 }
-
 export interface FileRoutesByTo {
-  "/": typeof IndexRoute;
-  "/analytics": typeof AnalyticsRouteRoute;
-  "/maps": typeof MapsRouteRoute;
+  '/': typeof IndexRoute
+  '/analytics': typeof AnalyticsRouteRoute
+  '/maps': typeof MapsRouteRoute
 }
-
 export interface FileRoutesById {
-  __root__: typeof rootRoute;
-  "/": typeof IndexRoute;
-  "/analytics": typeof AnalyticsRouteRoute;
-  "/maps": typeof MapsRouteRoute;
+  __root__: typeof rootRouteImport
+  '/': typeof IndexRoute
+  '/analytics': typeof AnalyticsRouteRoute
+  '/maps': typeof MapsRouteRoute
 }
-
 export interface FileRouteTypes {
-  fileRoutesByFullPath: FileRoutesByFullPath;
-  fullPaths: "/" | "/analytics" | "/maps";
-  fileRoutesByTo: FileRoutesByTo;
-  to: "/" | "/analytics" | "/maps";
-  id: "__root__" | "/" | "/analytics" | "/maps";
-  fileRoutesById: FileRoutesById;
+  fileRoutesByFullPath: FileRoutesByFullPath
+  fullPaths: '/' | '/analytics' | '/maps'
+  fileRoutesByTo: FileRoutesByTo
+  to: '/' | '/analytics' | '/maps'
+  id: '__root__' | '/' | '/analytics' | '/maps'
+  fileRoutesById: FileRoutesById
+}
+export interface RootRouteChildren {
+  IndexRoute: typeof IndexRoute
+  AnalyticsRouteRoute: typeof AnalyticsRouteRoute
+  MapsRouteRoute: typeof MapsRouteRoute
 }
 
-export interface RootRouteChildren {
-  IndexRoute: typeof IndexRoute;
-  AnalyticsRouteRoute: typeof AnalyticsRouteRoute;
-  MapsRouteRoute: typeof MapsRouteRoute;
+declare module '@tanstack/react-router' {
+  interface FileRoutesByPath {
+    '/maps': {
+      id: '/maps'
+      path: '/maps'
+      fullPath: '/maps'
+      preLoaderRoute: typeof MapsRouteRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/analytics': {
+      id: '/analytics'
+      path: '/analytics'
+      fullPath: '/analytics'
+      preLoaderRoute: typeof AnalyticsRouteRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/': {
+      id: '/'
+      path: '/'
+      fullPath: '/'
+      preLoaderRoute: typeof IndexRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+  }
 }
 
 const rootRouteChildren: RootRouteChildren = {
   IndexRoute: IndexRoute,
   AnalyticsRouteRoute: AnalyticsRouteRoute,
   MapsRouteRoute: MapsRouteRoute,
-};
-
-export const routeTree = rootRoute
-  ._addFileChildren(rootRouteChildren)
-  ._addFileTypes<FileRouteTypes>();
-
-/* ROUTE_MANIFEST_START
-{
-  "routes": {
-    "__root__": {
-      "filePath": "__root.tsx",
-      "children": [
-        "/",
-        "/analytics",
-        "/maps"
-      ]
-    },
-    "/": {
-      "filePath": "index.tsx"
-    },
-    "/analytics": {
-      "filePath": "analytics/route.tsx"
-    },
-    "/maps": {
-      "filePath": "maps/route.tsx"
-    }
-  }
 }
-ROUTE_MANIFEST_END */
+export const routeTree = rootRouteImport
+  ._addFileChildren(rootRouteChildren)
+  ._addFileTypes<FileRouteTypes>()

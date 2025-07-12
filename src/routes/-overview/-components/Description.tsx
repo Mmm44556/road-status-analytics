@@ -28,6 +28,7 @@ function Description() {
         gap: 1,
         alignItems: "center",
         height: "10px",
+        mt:1
       }}
     >
       <Chip onClick={() => {}} color="danger" variant="soft">

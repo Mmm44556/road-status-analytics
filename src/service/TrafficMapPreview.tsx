@@ -56,7 +56,7 @@ const CustomButton = () => {
     <Box
       sx={{
         position: "absolute",
-        top: 15,
+        top: 20,
         right: 5,
         zIndex: 1000,
       }}
@@ -236,7 +236,7 @@ const TrafficMap = () => {
     <Box
       ref={mapDiv}
       sx={{
-        height: "520px",
+        height: "550px",
         width: "100%",
         "& .esri-ui-corner": {
           zIndex: 1000,

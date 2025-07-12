@@ -1,6 +1,7 @@
 import { createContext } from "react";
 import MapView from "@arcgis/core/views/MapView";
-import { Point, Polygon } from "@arcgis/core/geometry";
+import Point from "@arcgis/core/geometry/Point";
+import Polygon from "@arcgis/core/geometry/Polygon";
 
 export type FlyTo = (geometry: Polygon | Point | null) => void;
 

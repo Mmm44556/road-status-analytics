@@ -2,10 +2,18 @@ from fastapi import FastAPI
 from fastapi.responses import JSONResponse
 from datetime import datetime
 from server.traffic.route import router as traffic_router
-
+from fastapi.middleware.cors import CORSMiddleware
 
 
 app = FastAPI()
+# 允許所有來源（開發階段方便用，正式環境建議指定來源）
+app.add_middleware(
+    CORSMiddleware,
+    allow_origins=["*"],  # 或改成 ['http://localhost:3000'] 只允許特定來源
+    allow_credentials=True,
+    allow_methods=["*"],
+    allow_headers=["*"],
+)
 app.include_router(traffic_router)
 
 
