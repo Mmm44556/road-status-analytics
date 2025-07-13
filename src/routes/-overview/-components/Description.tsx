@@ -65,7 +65,7 @@ function Description() {
           fontSize: 14,
         }}
       >
-        資料來源：政府開放資料平臺、TDX 運輸資料流通服務
+        資料來源：政府開放資料平臺、TDX 運輸資料流通服務、NLSC 國土測繪中心
       </Typography>
     </Box>
   );

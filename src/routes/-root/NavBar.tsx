@@ -25,9 +25,10 @@ import { blue } from "@mui/material/colors";
 import DialogTitle from "@mui/material/DialogTitle";
 import Dialog from "@mui/material/Dialog";
 import BroadCast from "./BroadCast";
-
+import ThermostatIcon from '@mui/icons-material/Thermostat';
 const drawerWidth = 240;
-const title = "道路事件分析系統";
+const title = "道路事件分析平台";
+const subTitle="Traffic Event Analytics Platform - TEAP"
 
 export default function DrawerAppBar() {
   const [mobileOpen, setMobileOpen] = useState(false);
@@ -84,7 +85,7 @@ export default function DrawerAppBar() {
             </IconButton>
 
             {/* 選單 */}
-            <BrandMenu title={title} />
+            <BrandMenu title={title} subTitle={subTitle} />
 
             {/* 導覽頁籤 */}
             <Navigation />
@@ -99,11 +100,12 @@ export default function DrawerAppBar() {
             >
               {/* 最新道路消息 */}
               <BroadCast />
-              
+
               {/* 瀏覽次數 */}
               {/* <Typography fontWeight={500}>
                 瀏覽次數 {numberIntl(1000)}
               </Typography> */}
+              
             </Box>
           </Toolbar>
         </AppBar>

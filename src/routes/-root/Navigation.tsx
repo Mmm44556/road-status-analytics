@@ -4,6 +4,7 @@ import Box from "@mui/material/Box";
 import Tab from "@mui/material/Tab";
 import { navigationItems } from "@/data/navigationItems";
 import { useNavigate } from "@tanstack/react-router";
+import type { SxProps } from "@mui/material";
 
 export default function Navigation() {
   const [value, setValue] = useState(0);
@@ -51,6 +52,7 @@ interface NavItemProps {
   label?: React.ReactNode;
   href?: string;
   selected?: boolean;
+  sx?: SxProps;
 }
 
 function NavItem(props: NavItemProps) {
@@ -59,11 +61,14 @@ function NavItem(props: NavItemProps) {
       component="a"
       sx={{
         height: "76px",
-        flexDirection: "row",
         gap: "5px",
         alignItems: "center",
         justifyContent: "center",
-        fontSize: "1rem",
+        fontSize: "0.8rem",
+        "&.Mui-selected": {
+          color: "#fff",
+        },
+        ...props.sx,
       }}
       onClick={(event: React.MouseEvent<HTMLAnchorElement, MouseEvent>) => {
         // Routing libraries handle this, you can remove the onClick handle when using them.
@@ -71,7 +76,6 @@ function NavItem(props: NavItemProps) {
           event.preventDefault();
         }
       }}
-      aria-current={props.selected && "page"}
       {...props}
     />
   );

@@ -10,6 +10,7 @@
 │   │   ├── 數據控制面板
 │   │   ├── 分析工具面板
 │   │   └── 儀表板組件
+|   |   
 │   ├── 資料管理
 │   │   ├── API服務層（直接對接開放資料API）
 │   │   ├── 本地數據緩存（LocalStorage/IndexedDB）
@@ -25,6 +26,8 @@
     ├── 政府資料開放平台 API
     ├── ArcGIS Online 服務
     └── 其他開放 API（氣象、人口統計等）
+
+
 ```
 
 ---
@@ -53,6 +56,9 @@
 - 歷年重大交通事故地點資料: [https://data.gov.tw/dataset/6132]
 
 - 即時性預告性資料書名: [https://drive.google.com/file/d/15rtxtf6-QC_K1plxEGuVq5SSDECCtje8/view]
+
+- 天氣預報
+  - 現在天氣觀測報告: [https://opendata.cwa.gov.tw/dataset/observation/O-A0003-001]
 
 ---
 

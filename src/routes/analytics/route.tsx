@@ -1,3 +1,5 @@
+import WorkInProgress from "@/components/WorkInProgress";
+import { Box } from "@mui/material";
 import { createFileRoute } from "@tanstack/react-router";
 
 export const Route = createFileRoute("/analytics")({
@@ -5,5 +7,15 @@ export const Route = createFileRoute("/analytics")({
 });
 
 function RouteComponent() {
-  return <div className="p-2">Hello from Analytics!</div>;
+  return (
+    <Box
+      sx={{
+        display: "flex",
+        justifyContent: "center",
+        alignItems: "center",
+      }}
+    >
+      <WorkInProgress />
+    </Box>
+  );
 }

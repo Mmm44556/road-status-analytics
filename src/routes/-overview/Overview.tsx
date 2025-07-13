@@ -11,6 +11,7 @@ import { TrafficMapViewContext } from "@/context";
 import MapView from "@arcgis/core/views/MapView";
 import { Point, Polygon } from "@arcgis/core/geometry";
 import AccidentDonutPie from "./-components/AccidentDonutPie";
+import TwnWeatherMap from "./-components/TwnWeatherMap";
 
 export default function Overview() {
   const view = useRef<MapView>(null);
@@ -18,6 +19,7 @@ export default function Overview() {
   return (
     <Grid container spacing={2}>
       <Grid size={12}>
+        {/* 狀態描述 */}
         <Description />
       </Grid>
       <Grid
@@ -36,6 +38,7 @@ export default function Overview() {
           <AnalyticsCard />
           {/* 地圖 */}
           <TrafficMapPreview />
+
         </TrafficMapViewContext.Provider>
       </Grid>
 
@@ -55,8 +58,12 @@ export default function Overview() {
             gap: 2,
           }}
         >
+          {/* 台灣天氣觀測 */}
+          <TwnWeatherMap />
+
           {/* 事故排行 */}
           <AccidentRank />
+
           {/* 事故類型 */}
           <AccidentDonutPie />
         </Box>
@@ -71,7 +78,7 @@ export default function Overview() {
           xl: 12,
         }}
       >
-        <AccidentCityChart />
+        {/* <AccidentCityChart /> */}
       </Grid>
     </Grid>
   );
