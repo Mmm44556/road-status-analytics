@@ -1,32 +1,38 @@
 import ReactECharts from "echarts-for-react";
 import { generateChartOption } from "@/utils/generateChartOption";
-import { Paper } from "@mui/material";
-import mock_accident_summary from "~/server/traffic/cache/aggregate_cache.json";
-import { getMonth } from "date-fns";
+import { Alert, Paper, Skeleton } from "@mui/material";
 import numberIntl from "@/utils/numberIntl";
 import { trafficEventTypes } from "@/constant";
+import {
+  getAccidentTypeTotals,
+  getLatestPeriod,
+  useAccidentSummary,
+} from "@/service/trafficApi";
 
-const lastMonth = getMonth(new Date());
-const lastMonthMM = lastMonth < 10 ? `0${lastMonth}` : lastMonth;
 export default function AccidentDonutPie() {
-  const currentMonthEvents = mock_accident_summary.data.filter((item) => {
-    return item.MM === lastMonthMM;
-  });
+  const { data, isPending, error } = useAccidentSummary();
 
-  // 累加A1,A2,A3
-  const eventsReduced = currentMonthEvents.reduce(
-    (acc, item) => {
-      acc.A1 += item.A1;
-      acc.A2 += item.A2;
-      acc.A3 += item.A3;
-      return acc;
-    },
-    { A1: 0, A2: 0, A3: 0 }
+  if (isPending) {
+    return <Skeleton variant="rounded" height={450} aria-label="正在載入事故類型統計" />;
+  }
+
+  if (error) {
+    return <Alert severity="error">事故類型統計載入失敗：{error.message}</Alert>;
+  }
+
+  const period = getLatestPeriod(data.data);
+  if (!period) {
+    return <Alert severity="info">目前沒有事故類型統計資料</Alert>;
+  }
+  const eventsReduced = getAccidentTypeTotals(
+    data.data,
+    period.year,
+    period.month,
   );
 
   const option = generateChartOption({
     title: {
-      text: "上個月交通事故類型統計",
+      text: `${period.year} 年 ${period.month} 月交通事故類型統計`,
       left: 15,
       top: 15,
     },

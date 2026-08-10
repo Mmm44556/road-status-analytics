@@ -137,6 +137,12 @@ async def get_aggregated_data():
         return JSONResponse(result)
         
     except Exception as e:
+        if os.path.exists(cache_file):
+            with open(cache_file, 'r', encoding='utf-8') as f:
+                return JSONResponse(
+                    json.load(f),
+                    headers={"X-Data-Source": "stale-cache"}
+                )
         return JSONResponse({"error": str(e)}, status_code=500)
     
 # 全國縣市排名 ( 發生日期+發生地點 = 重複事件)
