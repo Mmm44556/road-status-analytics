@@ -16,10 +16,13 @@ import InputAdornment from "@mui/material/InputAdornment";
 import SearchIcon from "@mui/icons-material/Search";
 import { format } from "date-fns";
 import getEventDescription from "@/config/eventType";
-import mockLiveRoadEvents from "@/mock/liveRoadEvents.json";
-import mockPreviewEvents from "@/mock/previewEvents.json";
 import debounce from "@/utils/debounce";
 import { useTrafficMapContext } from "@/hooks/useGetContext";
+import {
+  useRoadEvents,
+  type LiveRoadEvent,
+  type PreviewRoadEvent,
+} from "@/service/trafficApi";
 import { parseWKTPolygon } from "@/service/arcGIS/parser";
 import Point from "@arcgis/core/geometry/Point";
 import Polygon from "@arcgis/core/geometry/Polygon";
@@ -56,12 +59,15 @@ function a11yProps(index: number) {
   };
 }
 
-function RoadEventList() {
+type RoadEventListProps = { city: string };
+
+function RoadEventList({ city }: RoadEventListProps) {
   const [activeEvent, setActiveEvent] = useState<string | null>(null);
   const theme = useTheme();
   const [value, setValue] = useState(0);
   const [searchValue, setSearchValue] = useState("");
   const debouncedSearch = debounce(setSearchValue, 500);
+  const { data, isPending, isError } = useRoadEvents(city);
 
   const handleSearch = (event: React.ChangeEvent<HTMLInputElement>) => {
     debouncedSearch(event.target.value);
@@ -72,13 +78,13 @@ function RoadEventList() {
     });
   };
 
-  const previewEvents = useMemo<EventPreview[]>(
-    () => filterFormat(mockPreviewEvents.Events, "EventPreview"),
-    []
+  const previewEvents = useMemo<PreviewRoadEvent[]>(
+    () => filterFormat(data?.data.preview.Events ?? [], "EventPreview"),
+    [data]
   );
-  const liveEvents = useMemo<LiveEvent[]>(
-    () => filterFormat(mockLiveRoadEvents.LiveEvents, "LiveEvent"),
-    []
+  const liveEvents = useMemo<LiveRoadEvent[]>(
+    () => filterFormat(data?.data.live.LiveEvents ?? [], "LiveEvent"),
+    [data]
   );
   // 事件過濾
   const filteredEvents = useMemo(() => {
@@ -162,6 +168,9 @@ function RoadEventList() {
 
       {/* 預告性事件 */}
       <TabPanel value={value} index={0} dir={theme.direction}>
+        {isPending && <EventStatus message="正在取得 TDX 道路事件…" />}
+        {isError && <EventStatus message="目前無法取得道路事件，請稍後再試。" />}
+        {!isPending && !isError && filteredEvents.length === 0 && <EventStatus message="目前沒有符合條件的預告事件。" />}
         {filteredEvents.map((event) => {
           return (
             <Fragment key={event.EventID}>
@@ -176,6 +185,9 @@ function RoadEventList() {
         })}
       </TabPanel>
       <TabPanel value={value} index={1} dir={theme.direction}>
+        {isPending && <EventStatus message="正在取得 TDX 即時路況…" />}
+        {isError && <EventStatus message="目前無法取得即時路況，請稍後再試。" />}
+        {!isPending && !isError && filteredLiveEvents.length === 0 && <EventStatus message="目前沒有符合條件的即時事件。" />}
         {filteredLiveEvents.map((event) => {
           return (
             <Fragment key={event.EventID}>
@@ -193,32 +205,10 @@ function RoadEventList() {
   );
 }
 
-type EventBase = {
-  EventID: string;
-  EventTitle: string;
-  Description: string;
-  EventType: number;
-  EventSubType: number;
-  EventStep: number;
-  EffectiveTime: string;
-  LocationType: number;
-  Location: {
-    Other: string;
-  };
-  Source: string;
-  PublishTime: string;
-  LastUpdateTime: string;
-};
-
-type EventPreview = EventBase & {
-  ExpireTime: string;
-  Geometry: string;
-};
-
 type CardProps = React.ComponentProps<typeof Card>;
 
 type EventCardProps = {
-  event: EventPreview;
+  event: PreviewRoadEvent;
   setActiveEvent: React.Dispatch<React.SetStateAction<string | null>>;
   activeEvent: string | null;
 } & CardProps;
@@ -245,8 +235,6 @@ function EventCard({
       rings: [points],
       spatialReference: { wkid: 4326 },
     });
-    console.log({ eventDescription, event });
-
     setActiveEvent(event.EventID);
     if (!eventSet.has(event.EventID)) {
       eventSet.add(event.EventID);
@@ -265,7 +253,6 @@ function EventCard({
           },
         })
       );
-      console.log(eventDescription.iconDataUri);
       // 設定地點標示
       view?.current?.graphics.add(
         new Graphic({
@@ -370,11 +357,8 @@ function EventCard({
   );
 }
 
-type LiveEvent = EventBase & {
-  Positions: string;
-};
 type LiveEventCardProps = {
-  event: LiveEvent;
+  event: LiveRoadEvent;
   setActiveEvent: React.Dispatch<React.SetStateAction<string | null>>;
   activeEvent: string | null;
 } & CardProps;
@@ -501,12 +485,12 @@ function LiveEventCard({
   );
 }
 
-function filterFormat<T extends EventPreview | LiveEvent>(
+function filterFormat<T extends PreviewRoadEvent | LiveRoadEvent>(
   events: T[],
-  type: T extends EventPreview ? "EventPreview" : "LiveEvent"
+  type: T extends PreviewRoadEvent ? "EventPreview" : "LiveEvent"
 ): T[] {
   if (type === "EventPreview") {
-    return (events as EventPreview[]).map((event) => ({
+    return (events as PreviewRoadEvent[]).map((event) => ({
       ...event,
       PublishTime: format(new Date(event.PublishTime), "yyyy-MM-dd HH:mm:ss"),
       EffectiveTime: format(
@@ -525,6 +509,10 @@ function filterFormat<T extends EventPreview | LiveEvent>(
       PublishTime: format(new Date(event.PublishTime), "yyyy-MM-dd HH:mm:ss"),
     })) as T[];
   }
+}
+
+function EventStatus({ message }: { message: string }) {
+  return <Typography color="text.secondary" sx={{ px: 2, py: 3, textAlign: "center" }}>{message}</Typography>;
 }
 
 export default memo(RoadEventList);

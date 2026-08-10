@@ -1,4 +1,4 @@
-import { useRef } from "react";
+import { useRef, useState } from "react";
 import { Link } from "@tanstack/react-router";
 import Box from "@mui/material/Box";
 import Button from "@mui/material/Button";
@@ -22,8 +22,12 @@ import { findTrafficLocation, trafficLocations, type TrafficLocation } from "@/d
 
 export default function Overview() {
   const view = useRef<MapView>(null);
+  const [selectedLocation, setSelectedLocation] = useState<TrafficLocation>(trafficLocations[7]);
   const moveToLocation = (location: TrafficLocation | null) => {
-    if (location) view.current?.goTo({ center: location.center, zoom: 12 });
+    if (location) {
+      setSelectedLocation(location);
+      view.current?.goTo({ center: location.center, zoom: 12 });
+    }
   };
   return (
     <Box sx={{ maxWidth: 1600, mx: "auto", px: { xs: 2, md: 3 }, py: { xs: 2.5, md: 3.5 } }}>
@@ -42,6 +46,7 @@ export default function Overview() {
             <Box sx={{ position: "absolute", zIndex: 4, top: 16, left: 16, width: { xs: "calc(100% - 88px)", sm: 390 } }}>
               <Autocomplete
                 options={trafficLocations}
+                value={selectedLocation}
                 getOptionLabel={(option) => option.name}
                 filterOptions={(options, { inputValue }) => {
                   if (!inputValue.trim()) return options;
@@ -63,7 +68,7 @@ export default function Overview() {
                 <Box><Typography component="h2" variant="h3">道路事件</Typography><Typography variant="caption" color="text.secondary">預覽資料・點選事件可查看地圖位置</Typography></Box>
                 <Button component={Link} to="/maps" size="small" endIcon={<ArrowForwardRoundedIcon />}>完整地圖</Button>
               </Box>
-              <Box sx={{ mx: -2.25, mb: -2.25, "& > div": { height: "350px !important", borderRadius: 0 } }}><RoadEventList /></Box>
+              <Box sx={{ mx: -2.25, mb: -2.25, "& > div": { height: "350px !important", borderRadius: 0 } }}><RoadEventList city={selectedLocation.name} /></Box>
             </Paper>
           </Box>
         </Box>

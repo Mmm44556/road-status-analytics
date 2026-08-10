@@ -16,7 +16,38 @@ const accidentSummarySchema = z.object({
   data: z.array(z.unknown()),
 });
 
+const roadEventBaseSchema = z.object({
+  EventID: z.string(),
+  EventTitle: z.string(),
+  Description: z.string(),
+  EventType: z.number(),
+  EventSubType: z.number(),
+  EventStep: z.number(),
+  EffectiveTime: z.string(),
+  Positions: z.string(),
+  LocationType: z.number(),
+  Location: z.object({ Other: z.string() }),
+  Source: z.string(),
+  PublishTime: z.string(),
+  LastUpdateTime: z.string(),
+});
+
+const previewRoadEventSchema = roadEventBaseSchema.extend({
+  ExpireTime: z.string(),
+  Geometry: z.string(),
+});
+
+const roadEventsSchema = z.object({
+  data: z.object({
+    city: z.string(),
+    preview: z.object({ Events: z.array(previewRoadEventSchema) }),
+    live: z.object({ LiveEvents: z.array(roadEventBaseSchema) }),
+  }),
+});
+
 export type AccidentSummaryItem = z.infer<typeof accidentSummaryItemSchema>;
+export type PreviewRoadEvent = z.infer<typeof previewRoadEventSchema>;
+export type LiveRoadEvent = z.infer<typeof roadEventBaseSchema>;
 
 const apiBaseUrl = (import.meta.env.VITE_API_BASE_URL ?? '/api').replace(
   /\/$/,
@@ -33,6 +64,29 @@ export function parseAccidentSummary(input: unknown) {
     throw new Error("事故統計 API 未包含有效的日期資料");
   }
   return { data };
+}
+
+export function parseRoadEvents(input: unknown) {
+  return roadEventsSchema.parse(input);
+}
+
+export async function fetchRoadEvents(city: string, signal?: AbortSignal) {
+  const params = new URLSearchParams({ city, top: "100" });
+  const response = await fetch(`${apiBaseUrl}/traffic/road-events?${params}`, {
+    signal,
+  });
+  if (!response.ok) {
+    throw new Error(`道路事件 API 回應錯誤 (${response.status})`);
+  }
+  return parseRoadEvents(await response.json());
+}
+
+export function useRoadEvents(city: string) {
+  return useQuery({
+    queryKey: ["traffic", "road-events", city],
+    queryFn: ({ signal }) => fetchRoadEvents(city, signal),
+    staleTime: 2 * 60 * 1000,
+  });
 }
 
 export async function fetchAccidentSummary(signal?: AbortSignal) {

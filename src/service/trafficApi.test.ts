@@ -4,6 +4,7 @@ import {
   getLatestPeriod,
   getTopCities,
   parseAccidentSummary,
+  parseRoadEvents,
 } from "./trafficApi";
 
 const response = {
@@ -16,6 +17,29 @@ const response = {
 };
 
 describe("traffic API contract", () => {
+  it("validates TDX preview and live road events", () => {
+    const event = {
+      EventID: "event-1", EventTitle: "道路施工", Description: "施工中",
+      EventType: 2, EventSubType: 208, EventStep: 1,
+      EffectiveTime: "2026-08-10T09:00:00+08:00", Positions: "POINT (120.67 24.15)",
+      LocationType: 0, Location: { Other: "臺中市" }, Source: "TDX",
+      PublishTime: "2026-08-10T09:00:00+08:00", LastUpdateTime: "2026-08-10T09:01:00+08:00",
+    };
+    const parsed = parseRoadEvents({
+      data: {
+        city: "Taichung",
+        preview: { Events: [{ ...event, ExpireTime: "2026-08-11T09:00:00+08:00", Geometry: "POLYGON ((120 24,121 24,121 25,120 24))" }] },
+        live: { LiveEvents: [event] },
+      },
+    });
+    expect(parsed.data.preview.Events).toHaveLength(1);
+    expect(parsed.data.live.LiveEvents).toHaveLength(1);
+  });
+
+  it("rejects malformed TDX road events", () => {
+    expect(() => parseRoadEvents({ data: { city: "Taichung", preview: { Events: [{}] }, live: { LiveEvents: [] } } })).toThrow();
+  });
+
   it("validates and returns the accident summary response", () => {
     expect(parseAccidentSummary(response)).toEqual(response);
   });
