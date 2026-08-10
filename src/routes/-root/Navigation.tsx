@@ -11,8 +11,8 @@ export default function Navigation() {
         {navigationItems.map((item) => {
           const active = pathname === item.href;
           return (
-            <Box key={item.href} component={Link} to={item.href} sx={{ color: active ? "#fff" : "rgba(255,255,255,.68)", textDecoration: "none", display: "flex", alignItems: "center", gap: 0.75, px: 2, borderBottom: "3px solid", borderColor: active ? "secondary.main" : "transparent", fontWeight: 700, fontSize: 14 }}>
-              <item.icon sx={{ fontSize: 19 }} />{item.label}
+            <Box key={item.href} component={Link} to={item.href} aria-current={active ? "page" : undefined} sx={{ color: active ? "#fff" : "rgba(255,255,255,.68)", textDecoration: "none", display: "flex", alignItems: "center", gap: 0.75, px: 2, borderBottom: "3px solid", borderColor: active ? "secondary.main" : "transparent", fontWeight: 700, fontSize: 14 }}>
+              <Box sx={{ width: 30, height: 30, display: "grid", placeItems: "center", borderRadius: 1.5, bgcolor: active ? "rgba(73,191,174,.18)" : "transparent" }}><item.icon sx={{ fontSize: 19, color: active ? "#75DECB" : "inherit" }} /></Box>{item.label}
             </Box>
           );
         })}
@@ -22,7 +22,7 @@ export default function Navigation() {
           const active = pathname === item.href;
           return (
             <Box key={item.href} component={Link} to={item.href} aria-current={active ? "page" : undefined} sx={{ minHeight: 64, color: active ? "secondary.dark" : "text.secondary", textDecoration: "none", display: "flex", flexDirection: "column", alignItems: "center", justifyContent: "center", gap: 0.25, fontSize: 11, fontWeight: active ? 800 : 600 }}>
-              <item.icon sx={{ fontSize: 23 }} />{item.mobileLabel ?? item.label}
+              <Box sx={{ width: 38, height: 30, display: "grid", placeItems: "center", borderRadius: 2, bgcolor: active ? "secondary.light" : "transparent" }}><item.icon sx={{ fontSize: 22 }} /></Box>{item.mobileLabel ?? item.label}
             </Box>
           );
         })}

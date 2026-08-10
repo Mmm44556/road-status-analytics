@@ -5,8 +5,8 @@ import FloodIcon from "@mui/icons-material/Flood";
 import GroupsIcon from "@mui/icons-material/Groups";
 import WarningIcon from "@mui/icons-material/Warning";
 import AltRouteIcon from "@mui/icons-material/AltRoute";
-import { orange, blue, grey, green, red, brown } from "@mui/material/colors";
 import { getSvgData } from "@/utils/getSvgPath";
+import { uiColors } from "@/config/semanticColors";
 import {
   paintPathToIcon,
   paintPathToConstructionWorker,
@@ -18,10 +18,11 @@ const tdx_event_classification: EventClassification = {
   "1": {
     name: "交通事故",
     Icon: CarCrashIcon,
-    iconColor: red[500],
+    iconColor: uiColors.event.accident.main,
+    iconBackground: uiColors.event.accident.soft,
     iconDataUri: paintPathToIcon({
       content: getSvgData(<CarCrashIcon />).content,
-      fill: red[500],
+      fill: uiColors.event.accident.main,
     }),
     subtypes: {
       "101": "人與汽(機)車事故",
@@ -37,9 +38,10 @@ const tdx_event_classification: EventClassification = {
   "2": {
     name: "施工",
     Icon: ConstructionWorker,
-    iconColor: brown[500],
+    iconColor: uiColors.event.construction.main,
+    iconBackground: uiColors.event.construction.soft,
     iconDataUri: paintPathToConstructionWorker({
-      fill: brown[500],
+      fill: uiColors.event.construction.main,
     }),
     subtypes: {
       "201": "佈纜施工",
@@ -60,10 +62,11 @@ const tdx_event_classification: EventClassification = {
   "3": {
     name: "壅塞",
     Icon: DirectionsIcon,
-    iconColor: orange[500],
+    iconColor: uiColors.event.congestion.main,
+    iconBackground: uiColors.event.congestion.soft,
     iconDataUri: paintPathToIcon({
       content: getSvgData(<DirectionsIcon />).content,
-      fill: orange[500],
+      fill: uiColors.event.congestion.main,
     }),
     subtypes: {
       "301": "車多",
@@ -75,10 +78,11 @@ const tdx_event_classification: EventClassification = {
   "4": {
     name: "特殊管制",
     Icon: AltRouteIcon,
-    iconColor: grey[500],
+    iconColor: uiColors.event.control.main,
+    iconBackground: uiColors.event.control.soft,
     iconDataUri: paintPathToIcon({
       content: getSvgData(<AltRouteIcon />).content,
-      fill: grey[500],
+      fill: uiColors.event.control.main,
     }),
     subtypes: {
       "401": "航運",
@@ -92,10 +96,11 @@ const tdx_event_classification: EventClassification = {
   "5": {
     name: "天氣",
     Icon: AirIcon,
-    iconColor: blue[500],
+    iconColor: uiColors.event.weather.main,
+    iconBackground: uiColors.event.weather.soft,
     iconDataUri: paintPathToIcon({
       content: getSvgData(<AirIcon />).content,
-      fill: blue[500],
+      fill: uiColors.event.weather.main,
     }),
     subtypes: {
       "501": "濃霧",
@@ -114,10 +119,11 @@ const tdx_event_classification: EventClassification = {
   "6": {
     name: "災害",
     Icon: FloodIcon,
-    iconColor: orange[500],
+    iconColor: uiColors.event.disaster.main,
+    iconBackground: uiColors.event.disaster.soft,
     iconDataUri: paintPathToIcon({
       content: getSvgData(<FloodIcon />).content,
-      fill: orange[500],
+      fill: uiColors.event.disaster.main,
     }),
     subtypes: {
       "601": "地震",
@@ -138,10 +144,11 @@ const tdx_event_classification: EventClassification = {
   "7": {
     name: "活動",
     Icon: GroupsIcon,
-    iconColor: green[500],
+    iconColor: uiColors.event.activity.main,
+    iconBackground: uiColors.event.activity.soft,
     iconDataUri: paintPathToIcon({
       content: getSvgData(<GroupsIcon />).content,
-      fill: green[500],
+      fill: uiColors.event.activity.main,
     }),
     subtypes: {
       "701": "學術",
@@ -160,10 +167,11 @@ const tdx_event_classification: EventClassification = {
   "8": {
     name: "其他異常專案",
     Icon: WarningIcon,
-    iconColor: red[500],
+    iconColor: uiColors.event.hazard.main,
+    iconBackground: uiColors.event.hazard.soft,
     iconDataUri: paintPathToIcon({
       content: getSvgData(<WarningIcon />).content,
-      fill: red[500],
+      fill: uiColors.event.hazard.main,
     }),
     subtypes: {
       "801": "散落物",
@@ -191,6 +199,7 @@ export type EventClassification = {
     name: string;
     Icon: typeof SvgIcon | React.ElementType;
     iconColor: string;
+    iconBackground: string;
     iconDataUri: string;
     subtypes: {
       [key: string]: string;
@@ -216,6 +225,7 @@ export default function getEventDescription(
       subtype: subtype || "未知子類型",
       Icon: classification.Icon,
       iconColor: classification.iconColor,
+      iconBackground: classification.iconBackground,
       iconDataUri: classification.iconDataUri,
     };
   }
@@ -224,5 +234,6 @@ export default function getEventDescription(
     subtype: "未知子類型",
     Icon: null,
     iconColor: "text.secondary",
+    iconBackground: "#EEF2F1",
   };
 }

@@ -13,6 +13,7 @@ import AccidentRank from "@/routes/-overview/-components/AccidentRank";
 import AccidentDonutPie from "@/routes/-overview/-components/AccidentDonutPie";
 import { getAccidentTypeTotals, getLatestPeriod, getTopCities, useAccidentSummary } from "@/service/trafficApi";
 import numberIntl from "@/utils/numberIntl";
+import { uiColors } from "@/config/semanticColors";
 
 export const Route = createFileRoute("/analytics")({ component: AnalyticsPage });
 
@@ -26,9 +27,9 @@ function AnalyticsPage() {
   const totals = getAccidentTypeTotals(data.data, period.year, period.month);
   const topCity = getTopCities(data.data, period.year, period.month, 1)[0];
   const metrics = [
-    { label: "事故總數", value: totals.A1 + totals.A2 + totals.A3, suffix: "件", icon: CrisisAlertRoundedIcon, color: "warning.main" },
-    { label: "A1 死亡事故", value: totals.A1, suffix: "件", icon: LocalHospitalRoundedIcon, color: "error.main" },
-    { label: "事故最多縣市", value: topCity?.city ?? "—", suffix: "", icon: PlaceRoundedIcon, color: "secondary.main" },
+    { label: "事故總數", value: totals.A1 + totals.A2 + totals.A3, suffix: "件", icon: CrisisAlertRoundedIcon, ...uiColors.metric.total },
+    { label: "A1 死亡事故", value: totals.A1, suffix: "件", icon: LocalHospitalRoundedIcon, ...uiColors.metric.casualty },
+    { label: "事故最多縣市", value: topCity?.city ?? "—", suffix: "", icon: PlaceRoundedIcon, ...uiColors.metric.location },
   ];
 
   return (
@@ -40,9 +41,9 @@ function AnalyticsPage() {
       </Box>
 
       <Box component="section" aria-label="分析摘要" sx={{ display: "grid", gridTemplateColumns: { xs: "1fr", sm: "repeat(3, minmax(0,1fr))" }, gap: 1.5, mb: 2 }}>
-        {metrics.map(({ label, value, suffix, icon: Icon, color }) => (
+        {metrics.map(({ label, value, suffix, icon: Icon, main, soft }) => (
           <Paper key={label} sx={{ p: 2.25, display: "grid", gridTemplateColumns: "48px 1fr", gap: 1.5, alignItems: "center" }}>
-            <Box sx={{ width: 48, height: 48, display: "grid", placeItems: "center", borderRadius: 2, bgcolor: "background.default", color }}><Icon /></Box>
+            <Box sx={{ width: 48, height: 48, display: "grid", placeItems: "center", borderRadius: 2, bgcolor: soft, color: main }}><Icon /></Box>
             <Box><Typography variant="body2" color="text.secondary" fontWeight={650}>{label}</Typography><Typography component="p" fontSize={{ xs: 24, md: 30 }} fontWeight={800} lineHeight={1.2}>{typeof value === "number" ? numberIntl(value) : value} <Typography component="span" color="text.secondary" fontSize={14}>{suffix}</Typography></Typography></Box>
           </Paper>
         ))}

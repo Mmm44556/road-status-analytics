@@ -1,4 +1,5 @@
 import { createTheme } from "@mui/material/styles";
+import { uiColors } from "./semanticColors";
 
 declare module "@mui/material/styles" {
   interface BreakpointOverrides {
@@ -9,11 +10,11 @@ declare module "@mui/material/styles" {
 export const theme = createTheme({
   palette: {
     mode: "light",
-    primary: { main: "#0B2E3C", light: "#16495A", dark: "#061F29", contrastText: "#FFFFFF" },
-    secondary: { main: "#0E8A7A", light: "#D9F3EE", dark: "#08675D" },
-    error: { main: "#C43D4B" },
-    warning: { main: "#D97706" },
-    success: { main: "#138A64" },
+    primary: { main: uiColors.brand.ink, light: "#214A57", dark: "#08232C", contrastText: "#FFFFFF" },
+    secondary: { main: uiColors.brand.teal, light: uiColors.brand.soft, dark: "#075E59" },
+    error: { main: uiColors.event.accident.main },
+    warning: { main: uiColors.event.congestion.main },
+    success: { main: uiColors.event.activity.main },
     background: { default: "#F2F5F4", paper: "#FFFFFF" },
     text: { primary: "#142B33", secondary: "#5B6F75" },
     divider: "#DCE5E3",

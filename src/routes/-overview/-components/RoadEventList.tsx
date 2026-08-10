@@ -291,20 +291,7 @@ function EventCard({
     >
       <CardActionArea onClick={handleFlyTo}>
         <CardContent sx={{ display: "flex", alignItems: "center", gap: 1 }}>
-          {eventDescription.Icon && (
-            <eventDescription.Icon
-              sx={{
-                fontSize: {
-                  xs: 24,
-                  sm: 28,
-                  md: 32,
-                  lg: 36,
-                  xl: 40,
-                },
-                color: eventDescription.iconColor,
-              }}
-            />
-          )}
+          {eventDescription.Icon && <Box sx={{ width: 40, height: 40, flex: "0 0 40px", display: "grid", placeItems: "center", borderRadius: 2, bgcolor: eventDescription.iconBackground, color: eventDescription.iconColor }}><eventDescription.Icon sx={{ fontSize: 24 }} /></Box>}
           <Box
             sx={{ display: "flex", flexDirection: "column" }}
             component="span"
@@ -441,11 +428,7 @@ function LiveEventCard({
     >
       <CardActionArea onClick={handleFlyTo}>
         <CardContent sx={{ display: "flex", alignItems: "center", gap: 1 }}>
-          {eventDescription.Icon && (
-            <eventDescription.Icon
-              sx={{ fontSize: 32, color: eventDescription.iconColor }}
-            />
-          )}
+          {eventDescription.Icon && <Box sx={{ width: 40, height: 40, flex: "0 0 40px", display: "grid", placeItems: "center", borderRadius: 2, bgcolor: eventDescription.iconBackground, color: eventDescription.iconColor }}><eventDescription.Icon sx={{ fontSize: 24 }} /></Box>}
           <Box
             sx={{ display: "flex", flexDirection: "column" }}
             component="span"

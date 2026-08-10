@@ -19,6 +19,7 @@ import TrafficSummary from "./-components/TrafficSummary";
 import AccidentRank from "./-components/AccidentRank";
 import AccidentDonutPie from "./-components/AccidentDonutPie";
 import { findTrafficLocation, trafficLocations, type TrafficLocation } from "@/data/trafficLocations";
+import { uiColors } from "@/config/semanticColors";
 
 export default function Overview() {
   const view = useRef<MapView>(null);
@@ -33,7 +34,7 @@ export default function Overview() {
     <Box sx={{ maxWidth: 1600, mx: "auto", px: { xs: 2, md: 3 }, py: { xs: 2.5, md: 3.5 } }}>
       <Box component="header" sx={{ display: { md: "flex" }, alignItems: "end", justifyContent: "space-between", mb: 2.5 }}>
         <Box>
-          <Chip icon={<CircleIcon sx={{ fontSize: "9px !important", color: "#138A64 !important" }} />} label="公開路況服務" size="small" sx={{ mb: 1.25, bgcolor: "#E1F3ED", color: "#08675D", fontWeight: 750 }} />
+          <Chip icon={<CircleIcon sx={{ fontSize: "9px !important", color: `${uiColors.event.activity.main} !important` }} />} label="公開路況服務" size="small" sx={{ mb: 1.25, bgcolor: uiColors.event.activity.soft, color: uiColors.event.activity.main, fontWeight: 750 }} />
           <Typography component="h1" variant="h1">現在，路上發生什麼？</Typography>
           <Typography color="text.secondary" sx={{ mt: 0.75 }}>搜尋地區或定位目前位置，快速掌握事故與道路事件。</Typography>
         </Box>

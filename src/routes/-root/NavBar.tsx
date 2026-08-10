@@ -5,6 +5,7 @@ import Typography from "@mui/material/Typography";
 import TrafficRoundedIcon from "@mui/icons-material/TrafficRounded";
 import CircleIcon from "@mui/icons-material/Circle";
 import Navigation from "./Navigation";
+import { uiColors } from "@/config/semanticColors";
 
 export const desktopHeaderHeight = 72;
 
@@ -19,8 +20,8 @@ export default function NavBar() {
     >
       <Toolbar sx={{ minHeight: `${desktopHeaderHeight}px !important`, gap: 2, px: { xs: 2, md: 3 } }}>
         <Box sx={{ display: "flex", alignItems: "center", gap: 1.25, minWidth: { md: 265 } }}>
-          <Box sx={{ width: 42, height: 42, display: "grid", placeItems: "center", borderRadius: 2, bgcolor: "secondary.main" }}>
-            <TrafficRoundedIcon aria-hidden="true" />
+          <Box sx={{ width: 42, height: 42, display: "grid", placeItems: "center", borderRadius: 2, color: "primary.main", bgcolor: uiColors.brand.mint, boxShadow: "inset 0 0 0 1px rgba(255,255,255,.24)" }}>
+            <TrafficRoundedIcon aria-hidden="true" sx={{ fontSize: 25 }} />
           </Box>
           <Box>
             <Typography component="div" fontWeight={800} lineHeight={1.1}>路況通</Typography>
@@ -29,7 +30,7 @@ export default function NavBar() {
         </Box>
         <Navigation />
         <Box sx={{ ml: "auto", display: { xs: "none", md: "flex" }, alignItems: "center", gap: 1, color: "rgba(255,255,255,.78)" }}>
-          <CircleIcon sx={{ fontSize: 9, color: "#62D8BD" }} />
+          <CircleIcon sx={{ fontSize: 9, color: uiColors.brand.mint }} />
           <Typography variant="body2" fontWeight={650}>服務運作中</Typography>
         </Box>
       </Toolbar>

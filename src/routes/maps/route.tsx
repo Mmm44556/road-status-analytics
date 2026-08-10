@@ -7,13 +7,14 @@ import Typography from "@mui/material/Typography";
 import MapView from "@arcgis/core/views/MapView";
 import TrafficMapPreview from "@/service/TrafficMapPreview";
 import { TrafficMapViewContext } from "@/context";
+import { uiColors } from "@/config/semanticColors";
 
 export const Route = createFileRoute("/maps")({ component: MapExplorer });
 
 const legend = [
-  { label: "重大事故", color: "#C43D4B" },
-  { label: "一般事故", color: "#D97706" },
-  { label: "道路施工", color: "#1C78A5" },
+  { label: "重大事故", color: uiColors.event.accident.main, soft: uiColors.event.accident.soft },
+  { label: "道路壅塞", color: uiColors.event.congestion.main, soft: uiColors.event.congestion.soft },
+  { label: "道路施工", color: uiColors.event.construction.main, soft: uiColors.event.construction.soft },
 ];
 
 function MapExplorer() {
@@ -27,7 +28,7 @@ function MapExplorer() {
             <Typography component="h1" variant="h2">地圖探索</Typography>
             <Typography variant="body2" color="text.secondary" sx={{ mt: 0.5, mb: 1.5 }}>移動與縮放地圖，探索不同地區的道路狀況。</Typography>
             <Box aria-label="事件圖例" sx={{ display: "flex", flexWrap: "wrap", gap: 0.75 }}>
-              {legend.map((item) => <Chip key={item.label} size="small" label={item.label} icon={<Box component="span" sx={{ width: 8, height: 8, borderRadius: "50%", bgcolor: item.color }} />} />)}
+              {legend.map((item) => <Chip key={item.label} size="small" label={item.label} sx={{ bgcolor: item.soft, color: item.color, fontWeight: 700 }} icon={<Box component="span" sx={{ width: 8, height: 8, borderRadius: "50%", bgcolor: item.color }} />} />)}
             </Box>
             <Typography variant="caption" color="text.secondary" sx={{ display: "block", mt: 1.5 }}>事件圖層將依資料服務可用狀態顯示。</Typography>
           </Paper>
