@@ -1,5 +1,5 @@
 from datetime import datetime, timedelta
-from fastapi import APIRouter, Request, Query   
+from fastapi import APIRouter, HTTPException, Request, Query
 from pydantic import BaseModel
 import requests
 import json
@@ -14,7 +14,15 @@ urllib3.disable_warnings(urllib3.exceptions.InsecureRequestWarning)
 import concurrent.futures
 from server.traffic.utils.eventReader import fetch_a1, fetch_a2, fetch_a3
 from server.traffic.utils.index import is_cache_valid
-from server.traffic.config import A1_JSON_URL, A2_ZIP_URL, A3_JSON_URL
+from server.traffic.config import (
+    A1_JSON_URL,
+    A2_ZIP_URL,
+    A3_JSON_URL,
+    TDX_CLIENT_ID,
+    TDX_CLIENT_SECRET,
+)
+from server.traffic.tdx_client import TdxClient, TdxConfigError
+from server.traffic.tdx_service import RoadEventService, UnsupportedCityError
 import re
 # event_id: A1, A2, A3, All
 # event_type: 1: 交通事故, 2: 施工, 3: 其他
@@ -40,6 +48,36 @@ CACHE_DIR = "./server/traffic/cache"
 os.makedirs(CACHE_DIR, exist_ok=True)
 
 CACHE_EXPIRE_SECONDS = 120  # 2分鐘
+_road_event_service = None
+
+
+def get_road_event_service():
+    global _road_event_service
+    if _road_event_service is None:
+        _road_event_service = RoadEventService(
+            TdxClient(TDX_CLIENT_ID, TDX_CLIENT_SECRET),
+            ttl_seconds=120,
+        )
+    return _road_event_service
+
+
+@router.get("/road-events")
+def get_tdx_road_events(
+    city: str = Query("Taichung", min_length=2, max_length=32),
+    top: int = Query(100, ge=1, le=200),
+):
+    try:
+        data = get_road_event_service().get_city_events(city, top=top)
+        return JSONResponse(
+            {"data": data},
+            headers={"X-Data-Source": "TDX"},
+        )
+    except UnsupportedCityError as error:
+        raise HTTPException(status_code=422, detail=str(error)) from error
+    except TdxConfigError as error:
+        raise HTTPException(status_code=503, detail="TDX is not configured") from error
+    except requests.RequestException as error:
+        raise HTTPException(status_code=502, detail="TDX upstream request failed") from error
 
 def get_cache_filename(accident_type):
     return os.path.join(CACHE_DIR, f"{accident_type}_cache.json")

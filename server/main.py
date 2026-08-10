@@ -2,17 +2,17 @@ from fastapi import FastAPI
 from fastapi.responses import JSONResponse
 from datetime import datetime
 from server.traffic.route import router as traffic_router
+from server.traffic.config import ALLOWED_ORIGINS
 from fastapi.middleware.cors import CORSMiddleware
 
 
 app = FastAPI()
-# 允許所有來源（開發階段方便用，正式環境建議指定來源）
 app.add_middleware(
     CORSMiddleware,
-    allow_origins=["*"],  # 或改成 ['http://localhost:3000'] 只允許特定來源
-    allow_credentials=True,
-    allow_methods=["*"],
-    allow_headers=["*"],
+    allow_origins=ALLOWED_ORIGINS,
+    allow_credentials=False,
+    allow_methods=["GET"],
+    allow_headers=["Accept", "Content-Type"],
 )
 app.include_router(traffic_router)
 
@@ -31,4 +31,4 @@ def home():
             {"path": "/traffic/aggregate", "description": "聚合所有類型的交通事故資料"}
         ],
         "last_updated": datetime.now().isoformat()
-    }) 
+    })
