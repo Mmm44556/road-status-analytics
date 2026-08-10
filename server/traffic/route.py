@@ -1,23 +1,19 @@
 from datetime import datetime, timedelta
-from fastapi import APIRouter, HTTPException, Request, Query
+from fastapi import APIRouter, HTTPException, Query
 from pydantic import BaseModel
 import requests
 import json
-import zipfile
 import io
 import os
 import pandas as pd
 from fastapi.responses import JSONResponse, StreamingResponse
 from server.traffic.accident_data_aggregator import aggregate_data_from_raw
-import urllib3
-urllib3.disable_warnings(urllib3.exceptions.InsecureRequestWarning)
 import concurrent.futures
 from server.traffic.utils.eventReader import fetch_a1, fetch_a2, fetch_a3
+from server.traffic.utils.eventReader import download
 from server.traffic.utils.index import is_cache_valid
 from server.traffic.config import (
-    A1_JSON_URL,
     A2_ZIP_URL,
-    A3_JSON_URL,
     TDX_CLIENT_ID,
     TDX_CLIENT_SECRET,
 )
@@ -95,9 +91,7 @@ def get_a1_data():
         with open(cache_file, 'r', encoding='utf-8') as f:
             return JSONResponse(json.load(f))
     try:
-        response = requests.get(A1_JSON_URL, verify=False)
-        response.raise_for_status()
-        data = response.json()
+        data = {"success": True, "result": {"records": fetch_a1()}}
         with open(cache_file, 'w', encoding='utf-8') as f:
             json.dump(data, f, ensure_ascii=False)
         return JSONResponse(data)
@@ -111,11 +105,7 @@ def get_a2_data():
         with open(cache_file, 'r', encoding='utf-8') as f:
             return JSONResponse(json.load(f))
     try:
-        response = requests.get(A2_ZIP_URL, verify=False)
-        response.raise_for_status()
-        z = zipfile.ZipFile(io.BytesIO(response.content))
-        json_filename = [f for f in z.namelist() if f.endswith('.json')][0]
-        json_data = json.loads(z.read(json_filename).decode('utf-8'))
+        json_data = fetch_a2()
         with open(cache_file, 'w', encoding='utf-8') as f:
             json.dump(json_data, f, ensure_ascii=False)
         return JSONResponse(json_data)
@@ -125,9 +115,7 @@ def get_a2_data():
 @router.get("/events/A2/zip")
 def get_a2_zip():
     try:
-        response = requests.get(A2_ZIP_URL, verify=False)
-        response.raise_for_status()
-        mem_file = io.BytesIO(response.content)
+        mem_file = io.BytesIO(download(A2_ZIP_URL))
         mem_file.seek(0)
         return StreamingResponse(mem_file, media_type='application/zip', headers={
             'Content-Disposition': 'attachment; filename="A2_traffic_accident_data.zip"'
@@ -142,9 +130,7 @@ def get_a3_data():
         with open(cache_file, 'r', encoding='utf-8') as f:
             return JSONResponse(json.load(f))
     try:
-        response = requests.get(A3_JSON_URL, verify=False)
-        response.raise_for_status()
-        data = response.json()
+        data = fetch_a3()
         with open(cache_file, 'w', encoding='utf-8') as f:
             json.dump(data, f, ensure_ascii=False)
         return JSONResponse(data)
