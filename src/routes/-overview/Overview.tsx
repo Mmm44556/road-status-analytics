@@ -59,7 +59,7 @@ export default function Overview() {
                 sx={{ bgcolor: "rgba(255,255,255,.96)", borderRadius: 2, boxShadow: "0 10px 28px rgba(11,46,60,.18)", "& fieldset": { border: 0 } }}
               />
             </Box>
-            <TrafficMapPreview height={{ xs: 480, md: 650 }} />
+            <TrafficMapPreview city={selectedLocation.name} height={{ xs: 480, md: 650 }} />
           </Paper>
 
           <Box component="aside" aria-label="路況資訊" sx={{ display: "flex", flexDirection: "column", gap: 2, minWidth: 0 }}>
