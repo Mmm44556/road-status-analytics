@@ -125,17 +125,6 @@ export default function TrafficMapPreview({
         title: "此區域共有 {cluster_count} 件道路事件",
         content: "放大地圖可查看個別事件與詳細位置。",
       }),
-      labelingInfo: [{
-        labelExpressionInfo: { expression: "Text($feature.cluster_count, '#,###')" },
-        labelPlacement: "center-center",
-        symbol: {
-          type: "text",
-          color: "#FFFFFF",
-          haloColor: "#102F3A",
-          haloSize: 1,
-          font: { family: "Inter", size: 11, weight: "bold" },
-        },
-      }],
     });
     const eventLayer = new FeatureLayer({
       title: `${city}道路事件`,
