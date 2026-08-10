@@ -1,5 +1,5 @@
-import { useQuery } from "@tanstack/react-query";
-import { z } from "zod";
+import { useQuery } from '@tanstack/react-query';
+import { z } from 'zod';
 
 const accidentSummaryItemSchema = z.object({
   date: z.string(),
@@ -8,24 +8,37 @@ const accidentSummaryItemSchema = z.object({
   A2: z.number(),
   A3: z.number(),
   total: z.number(),
-  MM: z.string(),
-  YYYY: z.string(),
+  MM: z.string().regex(/^(0[1-9]|1[0-2])$/),
+  YYYY: z.string().regex(/^\d{4}$/),
 });
 
 const accidentSummarySchema = z.object({
-  data: z.array(accidentSummaryItemSchema),
+  data: z.array(z.unknown()),
 });
 
 export type AccidentSummaryItem = z.infer<typeof accidentSummaryItemSchema>;
 
-const apiBaseUrl = (import.meta.env.VITE_API_BASE_URL ?? "/api").replace(/\/$/, "");
+const apiBaseUrl = (import.meta.env.VITE_API_BASE_URL ?? '/api').replace(
+  /\/$/,
+  '',
+);
 
 export function parseAccidentSummary(input: unknown) {
-  return accidentSummarySchema.parse(input);
+  const response = accidentSummarySchema.parse(input);
+  const data = response.data.flatMap((item) => {
+    const parsed = accidentSummaryItemSchema.safeParse(item);
+    return parsed.success ? [parsed.data] : [];
+  });
+  if (data.length === 0 && response.data.length > 0) {
+    throw new Error("事故統計 API 未包含有效的日期資料");
+  }
+  return { data };
 }
 
 export async function fetchAccidentSummary(signal?: AbortSignal) {
-  const response = await fetch(`${apiBaseUrl}/traffic/events/summary`, { signal });
+  const response = await fetch(`${apiBaseUrl}/traffic/events/summary`, {
+    signal,
+  });
   if (!response.ok) {
     throw new Error(`事故統計 API 回應錯誤 (${response.status})`);
   }
@@ -34,7 +47,7 @@ export async function fetchAccidentSummary(signal?: AbortSignal) {
 
 export function useAccidentSummary() {
   return useQuery({
-    queryKey: ["traffic", "accident-summary"],
+    queryKey: ['traffic', 'accident-summary'],
     queryFn: ({ signal }) => fetchAccidentSummary(signal),
     staleTime: 5 * 60 * 1000,
   });
@@ -84,6 +97,6 @@ export function getLatestPeriod(items: AccidentSummaryItem[]) {
   }, null);
 
   if (!latest) return null;
-  const [year, month] = latest.split("-");
+  const [year, month] = latest.split('-');
   return { year, month };
 }

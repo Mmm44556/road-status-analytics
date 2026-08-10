@@ -6,7 +6,6 @@ import IconButton from "@mui/material/IconButton";
 import CircularProgress from "@mui/material/CircularProgress";
 import MyLocationRoundedIcon from "@mui/icons-material/MyLocationRounded";
 import Map from "@arcgis/core/Map";
-import Basemap from "@arcgis/core/Basemap";
 import WebTileLayer from "@arcgis/core/layers/WebTileLayer";
 import MapView from "@arcgis/core/views/MapView";
 import { useTrafficMapContext } from "@/hooks/useGetContext";
@@ -26,20 +25,15 @@ export default function TrafficMapPreview({
   useEffect(() => {
     if (!mapContainer.current) return;
 
-    const basemap = new Basemap({
-      baseLayers: [
-        new WebTileLayer({
-          urlTemplate:
-            "https://wmts.nlsc.gov.tw/wmts/EMAP/default/GoogleMapsCompatible/{z}/{y}/{x}",
-          copyright: "內政部國土測繪中心",
-        }),
-      ],
-      title: "臺灣通用電子地圖",
+    const nlscLayer = new WebTileLayer({
+      urlTemplate:
+        "https://wmts.nlsc.gov.tw/wmts/EMAP/default/GoogleMapsCompatible/{z}/{y}/{x}",
+      copyright: "內政部國土測繪中心",
     });
 
     const mapView = new MapView({
       container: mapContainer.current,
-      map: new Map({ basemap }),
+      map: new Map({ layers: [nlscLayer] }),
       center: [120.6478, 24.1477],
       zoom: 12,
       constraints: { minZoom: 7 },

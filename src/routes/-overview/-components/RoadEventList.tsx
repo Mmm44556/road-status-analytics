@@ -11,7 +11,6 @@ import {
   CardActionArea,
   CardContent,
   Divider,
-  type Theme,
 } from "@mui/material";
 import InputAdornment from "@mui/material/InputAdornment";
 import SearchIcon from "@mui/icons-material/Search";
@@ -22,9 +21,9 @@ import mockPreviewEvents from "@/mock/previewEvents.json";
 import debounce from "@/utils/debounce";
 import { useTrafficMapContext } from "@/hooks/useGetContext";
 import { parseWKTPolygon } from "@/service/arcGIS/parser";
-import { Point, Polygon } from "@arcgis/core/geometry";
+import Point from "@arcgis/core/geometry/Point";
+import Polygon from "@arcgis/core/geometry/Polygon";
 import Graphic from "@arcgis/core/Graphic";
-import locationIcon from "@/assets/location-fill.svg";
 interface TabPanelProps {
   children?: React.ReactNode;
   dir?: string;

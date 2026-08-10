@@ -1,5 +1,7 @@
 # Redesign Tasks
 
+Status: implementation complete; see `tasks/plan.md` for verified checkpoints.
+
 ## Task 1: 建立設計系統與響應式應用殼層
 
 **Description:** 重新定義品牌色、字體、表面、圓角與全域元件樣式，將現有導覽改為桌面頂部導覽及手機底部導覽。

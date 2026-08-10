@@ -29,38 +29,38 @@ Design tokens
 
 ### Phase 1: Foundation
 
-- [ ] Task 1: 建立新版設計系統與響應式應用殼層
-- [ ] Task 2: 重構 ArcGIS 地圖呈現與法定署名
+- [x] Task 1: 建立新版設計系統與響應式應用殼層
+- [x] Task 2: 重構 ArcGIS 地圖呈現與法定署名
 
 ### Checkpoint: Foundation
 
-- [ ] 新導覽可在手機與桌面切換
-- [ ] 地圖正常載入且署名可見
-- [ ] 本次修改檔案通過 ESLint
+- [x] 新導覽可在手機與桌面切換
+- [x] 地圖正常載入且署名可見
+- [x] 本次修改檔案通過 ESLint
 
 ### Phase 2: Core Pages
 
-- [ ] Task 3: 建立地圖優先首頁
-- [ ] Task 4: 完成全螢幕地圖探索頁
-- [ ] Task 5: 建立可用的資料分析頁
+- [x] Task 3: 建立地圖優先首頁
+- [x] Task 4: 完成全螢幕地圖探索頁
+- [x] Task 5: 建立可用的資料分析頁
 
 ### Checkpoint: Core Pages
 
-- [ ] `/`、`/maps`、`/analytics` 均不再顯示施工中畫面
-- [ ] API 失敗、載入中與無資料狀態均可理解
-- [ ] 手機 320px 無水平捲動
+- [x] `/`、`/maps`、`/analytics` 均不再顯示施工中畫面
+- [x] API 失敗、載入中與無資料狀態均可理解
+- [x] 手機 320px 無水平捲動
 
 ### Phase 3: Polish and Verification
 
-- [ ] Task 6: 完成響應式、無障礙與真實瀏覽器驗證
+- [x] Task 6: 完成響應式、無障礙與真實瀏覽器驗證
 
 ### Checkpoint: Complete
 
-- [ ] Vitest 全數通過
-- [ ] 本次修改檔案 ESLint 通過
-- [ ] 320px、768px、1440px 實際瀏覽器畫面符合規格
-- [ ] API 請求回傳預期狀態，console 無新增 error
-- [ ] 變更通過多軸程式碼審查並以原子提交保存
+- [x] Vitest 全數通過
+- [x] 本次修改檔案 ESLint 通過
+- [x] 320px、768px、1440px 實際瀏覽器畫面符合規格
+- [x] API 請求回傳預期狀態，console 無新增 error
+- [x] 變更通過多軸程式碼審查並以原子提交保存
 
 ## Risks and Mitigations
 

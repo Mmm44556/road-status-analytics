@@ -1,5 +1,5 @@
 import type { Icon } from "@/types";
-import { blue, grey } from "@mui/material/colors";
+import { blue } from "@mui/material/colors";
 
 export const paintLandMarkSVG = (icon: Icon) => {
   const { width, height, fill } = icon;

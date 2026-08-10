@@ -6,6 +6,7 @@ import Chip from "@mui/material/Chip";
 import InputAdornment from "@mui/material/InputAdornment";
 import Paper from "@mui/material/Paper";
 import TextField from "@mui/material/TextField";
+import Autocomplete from "@mui/material/Autocomplete";
 import Typography from "@mui/material/Typography";
 import SearchRoundedIcon from "@mui/icons-material/SearchRounded";
 import ArrowForwardRoundedIcon from "@mui/icons-material/ArrowForwardRounded";
@@ -17,9 +18,13 @@ import RoadEventList from "./-components/RoadEventList";
 import TrafficSummary from "./-components/TrafficSummary";
 import AccidentRank from "./-components/AccidentRank";
 import AccidentDonutPie from "./-components/AccidentDonutPie";
+import { findTrafficLocation, trafficLocations, type TrafficLocation } from "@/data/trafficLocations";
 
 export default function Overview() {
   const view = useRef<MapView>(null);
+  const moveToLocation = (location: TrafficLocation | null) => {
+    if (location) view.current?.goTo({ center: location.center, zoom: 12 });
+  };
   return (
     <Box sx={{ maxWidth: 1600, mx: "auto", px: { xs: 2, md: 3 }, py: { xs: 2.5, md: 3.5 } }}>
       <Box component="header" sx={{ display: { md: "flex" }, alignItems: "end", justifyContent: "space-between", mb: 2.5 }}>
@@ -35,7 +40,18 @@ export default function Overview() {
         <Box sx={{ display: "grid", gridTemplateColumns: { xs: "minmax(0,1fr)", lg: "minmax(0,1fr) 340px" }, gap: 2 }}>
           <Paper sx={{ position: "relative", overflow: "hidden", minWidth: 0 }}>
             <Box sx={{ position: "absolute", zIndex: 4, top: 16, left: 16, width: { xs: "calc(100% - 88px)", sm: 390 } }}>
-              <TextField fullWidth placeholder="搜尋縣市、行政區或道路" aria-label="搜尋路況地區" size="small" sx={{ bgcolor: "rgba(255,255,255,.96)", borderRadius: 2, boxShadow: "0 10px 28px rgba(11,46,60,.18)", "& fieldset": { border: 0 } }} slotProps={{ input: { startAdornment: <InputAdornment position="start"><SearchRoundedIcon color="action" /></InputAdornment> } }} />
+              <Autocomplete
+                options={trafficLocations}
+                getOptionLabel={(option) => option.name}
+                filterOptions={(options, { inputValue }) => {
+                  if (!inputValue.trim()) return options;
+                  const match = findTrafficLocation(inputValue);
+                  return match ? [match] : [];
+                }}
+                onChange={(_, location) => moveToLocation(location)}
+                renderInput={(params) => <TextField {...params} placeholder="搜尋縣市" aria-label="搜尋路況縣市" size="small" slotProps={{ input: { ...params.InputProps, startAdornment: <><InputAdornment position="start"><SearchRoundedIcon color="action" /></InputAdornment>{params.InputProps.startAdornment}</> } }} />}
+                sx={{ bgcolor: "rgba(255,255,255,.96)", borderRadius: 2, boxShadow: "0 10px 28px rgba(11,46,60,.18)", "& fieldset": { border: 0 } }}
+              />
             </Box>
             <TrafficMapPreview height={{ xs: 480, md: 650 }} />
           </Paper>
