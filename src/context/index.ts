@@ -1,12 +1,12 @@
 import { createContext } from "react";
-import MapView from "@arcgis/core/views/MapView";
-import Point from "@arcgis/core/geometry/Point";
-import Polygon from "@arcgis/core/geometry/Polygon";
-
-export type FlyTo = (geometry: Polygon | Point | null) => void;
+import type { MapController } from "@/service/map/mapController";
 
 export const TrafficMapViewContext = createContext<{
-  view: React.RefObject<MapView | null>;
+  mapController: MapController;
 }>({
-  view: { current: null },
+  mapController: {
+    attach: () => undefined,
+    flyTo: () => undefined,
+    showGeometry: () => undefined,
+  },
 });

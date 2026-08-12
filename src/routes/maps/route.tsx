@@ -1,12 +1,12 @@
-import { useRef } from "react";
+import { useMemo } from "react";
 import { createFileRoute } from "@tanstack/react-router";
 import Box from "@mui/material/Box";
 import Chip from "@mui/material/Chip";
 import Paper from "@mui/material/Paper";
 import Typography from "@mui/material/Typography";
-import MapView from "@arcgis/core/views/MapView";
 import TrafficMapPreview from "@/service/TrafficMapPreview";
 import { TrafficMapViewContext } from "@/context";
+import { createMapController } from "@/service/map/mapController";
 import { uiColors } from "@/config/semanticColors";
 
 export const Route = createFileRoute("/maps")({ component: MapExplorer });
@@ -18,10 +18,10 @@ const legend = [
 ];
 
 function MapExplorer() {
-  const view = useRef<MapView>(null);
+  const mapController = useMemo(() => createMapController(), []);
   return (
     <Box sx={{ height: { xs: "calc(100dvh - 136px)", md: "calc(100dvh - 72px)" }, p: { xs: 1.5, md: 2.5 }, position: "relative" }}>
-      <TrafficMapViewContext.Provider value={{ view }}>
+      <TrafficMapViewContext.Provider value={{ mapController }}>
         <Paper sx={{ height: "100%", overflow: "hidden", position: "relative" }}>
           <TrafficMapPreview height="100%" />
           <Paper sx={{ position: "absolute", zIndex: 4, left: { xs: 12, md: 20 }, top: { xs: 72, md: 20 }, p: 2, width: { xs: "calc(100% - 88px)", sm: 320 }, bgcolor: "rgba(255,255,255,.95)", backdropFilter: "blur(12px)" }}>

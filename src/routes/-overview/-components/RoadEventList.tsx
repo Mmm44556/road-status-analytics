@@ -23,10 +23,8 @@ import {
   type LiveRoadEvent,
   type PreviewRoadEvent,
 } from "@/service/trafficApi";
-import { parseWKTPolygon } from "@/service/arcGIS/parser";
-import Point from "@arcgis/core/geometry/Point";
-import Polygon from "@arcgis/core/geometry/Polygon";
-import Graphic from "@arcgis/core/Graphic";
+import { parseWKTPolygon } from "@/service/map/wkt";
+import { getWktRepresentativePoint } from "@/service/map/mapFeatures";
 interface TabPanelProps {
   children?: React.ReactNode;
   dir?: string;
@@ -213,15 +211,13 @@ type EventCardProps = {
   activeEvent: string | null;
 } & CardProps;
 
-const eventSet = new Set<string>();
-
 function EventCard({
   event,
   setActiveEvent,
   activeEvent,
   ...props
 }: EventCardProps) {
-  const { view } = useTrafficMapContext();
+  const { mapController } = useTrafficMapContext();
 
   const eventDescription = getEventDescription(
     event.EventType.toString(),
@@ -229,50 +225,24 @@ function EventCard({
   );
   const handleFlyTo = () => {
     const points = parseWKTPolygon(event.Geometry);
-    if (!points) return;
+    const position = getWktRepresentativePoint(event.Positions);
+    if (!points && !position) return;
 
-    const polygon = new Polygon({
-      rings: [points],
-      spatialReference: { wkid: 4326 },
-    });
     setActiveEvent(event.EventID);
-    if (!eventSet.has(event.EventID)) {
-      eventSet.add(event.EventID);
-
-      // 設定圖層
-      view?.current?.graphics.add(
-        new Graphic({
-          geometry: polygon,
-          symbol: {
-            type: "simple-fill",
-            color: [255, 0, 0, 0.3],
-            outline: {
-              color: [255, 0, 0],
-              width: 2,
-            },
-          },
-        })
-      );
-      // 設定地點標示
-      view?.current?.graphics.add(
-        new Graphic({
-          geometry: polygon,
-
-          symbol: {
-            type: "picture-marker",
-            yoffset: 20,
-            url: eventDescription.iconDataUri,
-            width: 28,
-            height: 28,
-          },
-        })
-      );
-    }
-
-    view?.current?.goTo({
-      target: polygon.rings[0][0],
-      zoom: 18,
-    });
+    mapController.showGeometry(points
+      ? {
+          id: event.EventID,
+          type: "polygon",
+          coordinates: points as [number, number][],
+          color: eventDescription.iconColor,
+        }
+      : {
+          id: event.EventID,
+          type: "point",
+          coordinates: position!,
+          color: eventDescription.iconColor,
+        });
+    mapController.flyTo((points?.[0] as [number, number] | undefined) ?? position!, 18);
   };
 
   return (
@@ -356,54 +326,21 @@ function LiveEventCard({
   activeEvent,
   ...props
 }: LiveEventCardProps) {
-  const { view } = useTrafficMapContext();
+  const { mapController } = useTrafficMapContext();
   const handleFlyTo = () => {
     const match = event.Positions.match(/POINT\s*\(([^)]+)\)/);
     if (match) {
       const [lng, lat] = match[1].split(" ").map(Number);
       if (!isNaN(lng) && !isNaN(lat)) {
-        const point = new Point({
-          longitude: lng,
-          latitude: lat,
-          spatialReference: { wkid: 4326 },
-        });
-
         setActiveEvent(event.EventID);
 
-        if (!eventSet.has(event.EventID)) {
-          eventSet.add(event.EventID);
-          view?.current?.graphics.add(
-            new Graphic({
-              geometry: point,
-              symbol: {
-                type: "simple-marker",
-                color: [255, 0, 0],
-                size: "12px",
-                outline: {
-                  color: [255, 255, 255],
-                  width: 1,
-                },
-              },
-            })
-          );
-
-          view?.current?.graphics.add(
-            new Graphic({
-              geometry: point,
-              symbol: {
-                type: "picture-marker",
-                url: eventDescription.iconDataUri,
-                width: 28,
-                height: 28,
-              },
-            })
-          );
-        }
-
-        view?.current?.goTo({
-          target: point,
-          zoom: 18,
+        mapController.showGeometry({
+          id: event.EventID,
+          type: "point",
+          coordinates: [lng, lat],
+          color: eventDescription.iconColor,
         });
+        mapController.flyTo([lng, lat], 18);
       }
     }
   };

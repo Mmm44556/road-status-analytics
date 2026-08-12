@@ -1,4 +1,4 @@
-import { useRef, useState } from "react";
+import { useMemo, useState } from "react";
 import { Link } from "@tanstack/react-router";
 import Box from "@mui/material/Box";
 import Button from "@mui/material/Button";
@@ -11,9 +11,9 @@ import Typography from "@mui/material/Typography";
 import SearchRoundedIcon from "@mui/icons-material/SearchRounded";
 import ArrowForwardRoundedIcon from "@mui/icons-material/ArrowForwardRounded";
 import CircleIcon from "@mui/icons-material/Circle";
-import MapView from "@arcgis/core/views/MapView";
 import TrafficMapPreview from "@/service/TrafficMapPreview";
 import { TrafficMapViewContext } from "@/context";
+import { createMapController } from "@/service/map/mapController";
 import RoadEventList from "./-components/RoadEventList";
 import TrafficSummary from "./-components/TrafficSummary";
 import AccidentRank from "./-components/AccidentRank";
@@ -22,12 +22,12 @@ import { findTrafficLocation, trafficLocations, type TrafficLocation } from "@/d
 import { uiColors } from "@/config/semanticColors";
 
 export default function Overview() {
-  const view = useRef<MapView>(null);
+  const mapController = useMemo(() => createMapController(), []);
   const [selectedLocation, setSelectedLocation] = useState<TrafficLocation>(trafficLocations[7]);
   const moveToLocation = (location: TrafficLocation | null) => {
     if (location) {
       setSelectedLocation(location);
-      view.current?.goTo({ center: location.center, zoom: 12 });
+      mapController.flyTo(location.center, 12);
     }
   };
   return (
@@ -41,7 +41,7 @@ export default function Overview() {
         <Typography variant="caption" color="text.secondary" sx={{ mt: { xs: 1.25, md: 0 } }}>資料僅供路況參考，不作為導航或緊急決策依據</Typography>
       </Box>
 
-      <TrafficMapViewContext.Provider value={{ view }}>
+      <TrafficMapViewContext.Provider value={{ mapController }}>
         <Box sx={{ display: "grid", gridTemplateColumns: { xs: "minmax(0,1fr)", lg: "minmax(0,1fr) 340px" }, gap: 2 }}>
           <Paper sx={{ position: "relative", overflow: "hidden", minWidth: 0 }}>
             <Box sx={{ position: "absolute", zIndex: 4, top: 16, left: 16, width: { xs: "calc(100% - 88px)", sm: 390 } }}>
