@@ -1,5 +1,4 @@
-import type { Icon } from "@/types";
-import { blue } from "@mui/material/colors";
+import type { Icon } from '@/types';
 
 export const paintLandMarkSVG = (icon: Icon) => {
   const { width, height, fill } = icon;
@@ -13,7 +12,7 @@ export const paintLandMarkSVG = (icon: Icon) => {
       </g>
     </svg>
   `;
-  const cleanedSvg = svg.trim().replace(/\s\s+/g, " ");
+  const cleanedSvg = svg.trim().replace(/\s\s+/g, ' ');
   return `data:image/svg+xml;base64,${btoa(cleanedSvg)}`;
 };
 
@@ -23,11 +22,12 @@ export const paintPathToIcon = (icon: PaintPathToIcon) => {
   const {
     width = 32,
     height = 32,
-    fill = "black",
+    iconBackground = 'black',
+    iconColor = 'black',
     content,
-    viewBox = "0 0 24 24",
+    viewBox = '0 0 24 24',
   } = icon;
-  const viewBoxParts = viewBox.split(" ").map(Number);
+  const viewBoxParts = viewBox.split(' ').map(Number);
   const [, , vbWidth, vbHeight] = viewBoxParts;
 
   const circleCx = vbWidth / 2;
@@ -39,20 +39,25 @@ export const paintPathToIcon = (icon: PaintPathToIcon) => {
   const translateY = (vbHeight * (1 - scale)) / 2;
   const svg = `
     <svg width="${width}px" height="${height}px" viewBox="${viewBox}" xmlns="http://www.w3.org/2000/svg">
-      <circle cx="${circleCx}" cy="${circleCy}" r="${circleR}" fill="${blue[400]}"/>
-      <g transform="translate(${translateX}, ${translateY}) scale(${scale})" color="${fill}" fill="${fill}">
+      <circle cx="${circleCx}" cy="${circleCy}" r="${circleR}" fill="${iconBackground}"/>
+      <g transform="translate(${translateX}, ${translateY}) scale(${scale})" fill="${iconColor}">
         ${content}
       </g>
     </svg>
   `;
-  const cleanedSvg = svg.trim().replace(/\s\s+/g, " ");
+  const cleanedSvg = svg.trim().replace(/\s\s+/g, ' ');
   return `data:image/svg+xml;base64,${btoa(cleanedSvg)}`;
 };
 
 export const paintPathToConstructionWorker = (icon: Partial<Icon>) => {
-  const { width = 32, height = 32, fill = "black" } = icon;
-  const viewBox = "0 0 256 256";
-  const viewBoxParts = viewBox.split(" ").map(Number);
+  const {
+    width = 32,
+    height = 32,
+    iconBackground = 'black',
+    iconColor = 'black',
+  } = icon;
+  const viewBox = '0 0 256 256';
+  const viewBoxParts = viewBox.split(' ').map(Number);
   const [, , vbWidth, vbHeight] = viewBoxParts;
 
   const circleCx = vbWidth / 2;
@@ -70,12 +75,12 @@ export const paintPathToConstructionWorker = (icon: Partial<Icon>) => {
 
   const svg = `
     <svg width="${width}px" height="${height}px" viewBox="${viewBox}" xmlns="http://www.w3.org/2000/svg" >
-      <circle cx="${circleCx}" cy="${circleCy}" r="${circleR}" fill="${blue[400]}"/>
-      <g transform="translate(${translateX}, ${translateY}) scale(${scale})" fill="${fill}">
+      <circle cx="${circleCx}" cy="${circleCy}" r="${circleR}" fill="${iconBackground}"/>
+      <g transform="translate(${translateX}, ${translateY}) scale(${scale})" fill="${iconColor}">
         ${content}
       </g>
     </svg>
   `;
-  const cleanedSvg = svg.trim().replace(/\s\s+/g, " ");
+  const cleanedSvg = svg.trim().replace(/\s\s+/g, ' ');
   return `data:image/svg+xml;base64,${btoa(cleanedSvg)}`;
 };

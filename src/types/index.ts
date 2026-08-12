@@ -7,6 +7,8 @@ type Icon = {
   width: number;
   height: number;
   fill: string;
+  iconBackground?: string;
+  iconColor?: string;
 };
 
 export type { Option, Icon };
