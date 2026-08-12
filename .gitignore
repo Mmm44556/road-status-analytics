@@ -7,6 +7,9 @@ yarn-error.log*
 pnpm-debug.log*
 lerna-debug.log*
 /server/cache
+__pycache__/
+*.py[cod]
+/server/traffic/cache/aggregate_cache.json
 /node_modules
 dist
 dist-ssr
