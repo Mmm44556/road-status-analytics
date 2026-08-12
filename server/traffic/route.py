@@ -1,20 +1,24 @@
 from datetime import datetime, timedelta
-from fastapi import APIRouter, Request, Query   
+from fastapi import APIRouter, HTTPException, Query
 from pydantic import BaseModel
 import requests
 import json
-import zipfile
 import io
 import os
 import pandas as pd
 from fastapi.responses import JSONResponse, StreamingResponse
 from server.traffic.accident_data_aggregator import aggregate_data_from_raw
-import urllib3
-urllib3.disable_warnings(urllib3.exceptions.InsecureRequestWarning)
 import concurrent.futures
 from server.traffic.utils.eventReader import fetch_a1, fetch_a2, fetch_a3
+from server.traffic.utils.eventReader import download
 from server.traffic.utils.index import is_cache_valid
-from server.traffic.config import A1_JSON_URL, A2_ZIP_URL, A3_JSON_URL
+from server.traffic.config import (
+    A2_ZIP_URL,
+    TDX_CLIENT_ID,
+    TDX_CLIENT_SECRET,
+)
+from server.traffic.tdx_client import TdxClient, TdxConfigError
+from server.traffic.tdx_service import RoadEventService, UnsupportedCityError
 import re
 # event_id: A1, A2, A3, All
 # event_type: 1: 交通事故, 2: 施工, 3: 其他
@@ -40,6 +44,36 @@ CACHE_DIR = "./server/traffic/cache"
 os.makedirs(CACHE_DIR, exist_ok=True)
 
 CACHE_EXPIRE_SECONDS = 120  # 2分鐘
+_road_event_service = None
+
+
+def get_road_event_service():
+    global _road_event_service
+    if _road_event_service is None:
+        _road_event_service = RoadEventService(
+            TdxClient(TDX_CLIENT_ID, TDX_CLIENT_SECRET),
+            ttl_seconds=120,
+        )
+    return _road_event_service
+
+
+@router.get("/road-events")
+def get_tdx_road_events(
+    city: str = Query("Taichung", min_length=2, max_length=32),
+    top: int = Query(100, ge=1, le=200),
+):
+    try:
+        data = get_road_event_service().get_city_events(city, top=top)
+        return JSONResponse(
+            {"data": data},
+            headers={"X-Data-Source": "TDX"},
+        )
+    except UnsupportedCityError as error:
+        raise HTTPException(status_code=422, detail=str(error)) from error
+    except TdxConfigError as error:
+        raise HTTPException(status_code=503, detail="TDX is not configured") from error
+    except requests.RequestException as error:
+        raise HTTPException(status_code=502, detail="TDX upstream request failed") from error
 
 def get_cache_filename(accident_type):
     return os.path.join(CACHE_DIR, f"{accident_type}_cache.json")
@@ -57,9 +91,7 @@ def get_a1_data():
         with open(cache_file, 'r', encoding='utf-8') as f:
             return JSONResponse(json.load(f))
     try:
-        response = requests.get(A1_JSON_URL, verify=False)
-        response.raise_for_status()
-        data = response.json()
+        data = {"success": True, "result": {"records": fetch_a1()}}
         with open(cache_file, 'w', encoding='utf-8') as f:
             json.dump(data, f, ensure_ascii=False)
         return JSONResponse(data)
@@ -73,11 +105,7 @@ def get_a2_data():
         with open(cache_file, 'r', encoding='utf-8') as f:
             return JSONResponse(json.load(f))
     try:
-        response = requests.get(A2_ZIP_URL, verify=False)
-        response.raise_for_status()
-        z = zipfile.ZipFile(io.BytesIO(response.content))
-        json_filename = [f for f in z.namelist() if f.endswith('.json')][0]
-        json_data = json.loads(z.read(json_filename).decode('utf-8'))
+        json_data = fetch_a2()
         with open(cache_file, 'w', encoding='utf-8') as f:
             json.dump(json_data, f, ensure_ascii=False)
         return JSONResponse(json_data)
@@ -87,9 +115,7 @@ def get_a2_data():
 @router.get("/events/A2/zip")
 def get_a2_zip():
     try:
-        response = requests.get(A2_ZIP_URL, verify=False)
-        response.raise_for_status()
-        mem_file = io.BytesIO(response.content)
+        mem_file = io.BytesIO(download(A2_ZIP_URL))
         mem_file.seek(0)
         return StreamingResponse(mem_file, media_type='application/zip', headers={
             'Content-Disposition': 'attachment; filename="A2_traffic_accident_data.zip"'
@@ -104,9 +130,7 @@ def get_a3_data():
         with open(cache_file, 'r', encoding='utf-8') as f:
             return JSONResponse(json.load(f))
     try:
-        response = requests.get(A3_JSON_URL, verify=False)
-        response.raise_for_status()
-        data = response.json()
+        data = fetch_a3()
         with open(cache_file, 'w', encoding='utf-8') as f:
             json.dump(data, f, ensure_ascii=False)
         return JSONResponse(data)
@@ -137,6 +161,12 @@ async def get_aggregated_data():
         return JSONResponse(result)
         
     except Exception as e:
+        if os.path.exists(cache_file):
+            with open(cache_file, 'r', encoding='utf-8') as f:
+                return JSONResponse(
+                    json.load(f),
+                    headers={"X-Data-Source": "stale-cache"}
+                )
         return JSONResponse({"error": str(e)}, status_code=500)
     
 # 全國縣市排名 ( 發生日期+發生地點 = 重複事件)

@@ -1,21 +1,24 @@
-import LeaderboardIcon from "@mui/icons-material/Leaderboard";
-import DashboardIcon from "@mui/icons-material/Dashboard";
-import PublicIcon from "@mui/icons-material/Public";
+import RouteRoundedIcon from "@mui/icons-material/RouteRounded";
+import QueryStatsRoundedIcon from "@mui/icons-material/QueryStatsRounded";
+import MapRoundedIcon from "@mui/icons-material/MapRounded";
 
 export const navigationItems = [
   {
-    label: "Overview",
-    icon: DashboardIcon,
+    label: "即時路況",
+    mobileLabel: "路況",
+    icon: RouteRoundedIcon,
     href: "/",
   },
   {
-    label: "Analytics",
-    icon: LeaderboardIcon,
+    label: "趨勢分析",
+    mobileLabel: "分析",
+    icon: QueryStatsRoundedIcon,
     href: "/analytics",
   },
   {
-    label: "Maps",
-    icon: PublicIcon,
+    label: "地圖探索",
+    mobileLabel: "地圖",
+    icon: MapRoundedIcon,
     href: "/maps",
   },
 ];

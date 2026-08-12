@@ -1,307 +1,225 @@
-import { useContext, createContext, useState, useEffect, useRef } from "react";
-import { Box } from "@mui/material";
-
-import Map from "@arcgis/core/Map";
-import Basemap from "@arcgis/core/Basemap";
-import WebTileLayer from "@arcgis/core/layers/WebTileLayer";
+import { useEffect, useMemo, useRef, useState } from "react";
+import Alert from "@mui/material/Alert";
+import Box from "@mui/material/Box";
+import Chip from "@mui/material/Chip";
+import CircularProgress from "@mui/material/CircularProgress";
+import IconButton from "@mui/material/IconButton";
+import Paper from "@mui/material/Paper";
+import Typography from "@mui/material/Typography";
+import CloseRoundedIcon from "@mui/icons-material/CloseRounded";
+import MyLocationRoundedIcon from "@mui/icons-material/MyLocationRounded";
+import Feature from "ol/Feature";
+import OlMap from "ol/Map";
+import View from "ol/View";
+import Point from "ol/geom/Point";
+import Polygon from "ol/geom/Polygon";
+import TileLayer from "ol/layer/Tile";
+import VectorLayer from "ol/layer/Vector";
+import Cluster from "ol/source/Cluster";
+import VectorSource from "ol/source/Vector";
+import XYZ from "ol/source/XYZ";
+import { defaults as defaultControls } from "ol/control/defaults";
+import { boundingExtent } from "ol/extent";
+import { unByKey } from "ol/Observable";
+import { fromLonLat } from "ol/proj";
+import CircleStyle from "ol/style/Circle";
+import Fill from "ol/style/Fill";
+import Stroke from "ol/style/Stroke";
+import Style from "ol/style/Style";
+import Text from "ol/style/Text";
+import "ol/ol.css";
+import { uiColors } from "@/config/semanticColors";
 import { useTrafficMapContext } from "@/hooks/useGetContext";
-import MyDrawer from "@/components/MyDrawer";
-import MapView from "@arcgis/core/views/MapView";
-// import GraphicsLayer from "@arcgis/core/layers/GraphicsLayer";
+import { roadEventsToMapPoints, type RoadEventMapPoint } from "@/service/map/mapFeatures";
+import { useRoadEvents } from "@/service/trafficApi";
+import { getNlscTileUrl } from "@/service/map/nlscTiles";
 
-export default function TrafficMapPreview() {
-  return (
-    <Box
-      sx={{
-        position: "relative",
-      }}
-    >
-      <TrafficMap />
-      <CustomButton />
-    </Box>
-  );
-}
-
-const TrafficDataContext = createContext<any>({});
-
-export const useTrafficData = () => {
-  const context = useContext(TrafficDataContext);
-  if (!context) {
-    throw new Error("useTrafficData must be used within TrafficDataProvider");
-  }
-  return context;
+type TrafficMapPreviewProps = {
+  height?: number | string | Record<string, number | string>;
+  city?: string;
 };
 
-const CustomButton = () => {
-  const { view } = useTrafficMapContext();
+const eventColors: Record<number, string> = {
+  1: uiColors.event.accident.main,
+  2: uiColors.event.construction.main,
+  3: uiColors.event.congestion.main,
+  4: uiColors.event.control.main,
+  5: uiColors.event.weather.main,
+  6: uiColors.event.disaster.main,
+  7: uiColors.event.activity.main,
+  8: uiColors.event.hazard.main,
+};
 
-  const handleLocationClick = () => {
-    if (navigator.geolocation) {
-      navigator.geolocation.getCurrentPosition(
-        (position) => {
-          console.log("用戶位置:", position.coords);
-          view.current?.goTo({
-            center: [position.coords.longitude, position.coords.latitude],
-            zoom: 15,
-          });
-          // 這裡可以調用地圖 API 移動到用戶位置
-        },
-        (error) => {
-          console.error("取得位置失敗:", error);
+const pointStyle = (color: string) => new Style({
+  image: new CircleStyle({
+    radius: 7,
+    fill: new Fill({ color }),
+    stroke: new Stroke({ color: "#FFFFFF", width: 2 }),
+  }),
+});
+
+export default function TrafficMapPreview({
+  height = { xs: 440, md: 620 },
+  city = "臺中市",
+}: TrafficMapPreviewProps) {
+  const mapContainer = useRef<HTMLDivElement>(null);
+  const eventSourceRef = useRef(new VectorSource());
+  const highlightSourceRef = useRef(new VectorSource());
+  const { mapController } = useTrafficMapContext();
+  const { data: roadEvents, isError: isRoadEventError } = useRoadEvents(city);
+  const [isLoading, setIsLoading] = useState(true);
+  const [error, setError] = useState<string | null>(null);
+  const [dismissedApiError, setDismissedApiError] = useState(false);
+  const [selectedEvent, setSelectedEvent] = useState<RoadEventMapPoint | null>(null);
+  const mapPoints = useMemo(
+    () => roadEventsToMapPoints(
+      roadEvents?.data.preview.Events ?? [],
+      roadEvents?.data.live.LiveEvents ?? [],
+    ),
+    [roadEvents],
+  );
+
+  useEffect(() => {
+    if (!mapContainer.current) return;
+
+    const clusterSource = new Cluster({
+      distance: 64,
+      minDistance: 20,
+      source: eventSourceRef.current,
+    });
+    const styleCache = new globalThis.Map<number, Style>();
+    const eventLayer = new VectorLayer({
+      source: clusterSource,
+      style: (feature) => {
+        const members = feature.get("features") as Feature<Point>[];
+        const size = members.length;
+        if (size === 1) {
+          const event = members[0].get("event") as RoadEventMapPoint;
+          return pointStyle(eventColors[event.eventType] ?? uiColors.event.control.main);
         }
-      );
-    }
+        let style = styleCache.get(size);
+        if (!style) {
+          style = new Style({
+            image: new CircleStyle({
+              radius: Math.min(28, 16 + Math.log2(size) * 3),
+              fill: new Fill({ color: "rgba(182,93,19,.92)" }),
+              stroke: new Stroke({ color: "#FFFFFF", width: 2 }),
+            }),
+            text: new Text({
+              text: String(size),
+              fill: new Fill({ color: "#FFFFFF" }),
+              stroke: new Stroke({ color: "rgba(16,47,58,.6)", width: 2 }),
+              font: "700 12px Inter, sans-serif",
+            }),
+          });
+          styleCache.set(size, style);
+        }
+        return style;
+      },
+    });
+    const highlightLayer = new VectorLayer({ source: highlightSourceRef.current });
+    const map = new OlMap({
+      target: mapContainer.current,
+      layers: [
+        new TileLayer({
+          source: new XYZ({
+            attributions: "內政部國土測繪中心",
+            tileUrlFunction: getNlscTileUrl,
+            crossOrigin: "anonymous",
+          }),
+        }),
+        eventLayer,
+        highlightLayer,
+      ],
+      view: new View({ center: fromLonLat([120.6478, 24.1477]), zoom: 12, minZoom: 7 }),
+      controls: defaultControls({ rotate: false, zoom: true, attribution: true }),
+    });
+    const renderKey = map.once("rendercomplete", () => setIsLoading(false));
+
+    const flyTo = (center: [number, number], zoom: number) => {
+      map.getView().animate({ center: fromLonLat(center), zoom, duration: 650 });
+    };
+    mapController.attach({
+      flyTo,
+      showGeometry: (geometry) => {
+        if (highlightSourceRef.current.getFeatureById(geometry.id)) {
+          const feature = highlightSourceRef.current.getFeatureById(geometry.id);
+          const existingGeometry = feature?.getGeometry();
+          if (existingGeometry instanceof Point || existingGeometry instanceof Polygon) {
+            map.getView().fit(existingGeometry, { maxZoom: 18, duration: 650, padding: [64, 64, 64, 64] });
+          }
+          return;
+        }
+        const projected = geometry.type === "point"
+          ? new Point(fromLonLat(geometry.coordinates))
+          : new Polygon([geometry.coordinates.map((coordinate) => fromLonLat(coordinate))]);
+        const feature = new Feature({ geometry: projected });
+        feature.setId(geometry.id);
+        feature.setStyle(geometry.type === "point"
+          ? pointStyle(geometry.color)
+          : new Style({ fill: new Fill({ color: `${geometry.color}33` }), stroke: new Stroke({ color: geometry.color, width: 3 }) }));
+        highlightSourceRef.current.addFeature(feature);
+        map.getView().fit(projected, { maxZoom: 18, duration: 650, padding: [64, 64, 64, 64] });
+      },
+    });
+
+    map.on("singleclick", (clickEvent) => {
+      eventLayer.getFeatures(clickEvent.pixel).then((features) => {
+        if (!features.length) return;
+        const members = features[0].get("features") as Feature<Point>[];
+        if (members.length > 1) {
+          const extent = boundingExtent(members.map((member) => member.getGeometry()!.getCoordinates()));
+          map.getView().fit(extent, { duration: 650, padding: [72, 72, 72, 72], maxZoom: 17 });
+          setSelectedEvent(null);
+          return;
+        }
+        setSelectedEvent(members[0].get("event") as RoadEventMapPoint);
+      });
+    });
+
+    return () => {
+      mapController.attach(null);
+      unByKey(renderKey);
+      clusterSource.setSource(null);
+      map.setTarget(undefined);
+    };
+  }, [mapController]);
+
+  useEffect(() => {
+    const features = mapPoints.map((event) => {
+      const feature = new Feature({ geometry: new Point(fromLonLat([event.longitude, event.latitude])), event });
+      feature.setId(event.eventId);
+      return feature;
+    });
+    eventSourceRef.current.clear();
+    eventSourceRef.current.addFeatures(features);
+    setSelectedEvent(null);
+  }, [mapPoints]);
+
+  useEffect(() => setDismissedApiError(false), [city]);
+
+  const locateUser = () => {
+    if (!navigator.geolocation) return setError("你的瀏覽器不支援定位功能。");
+    navigator.geolocation.getCurrentPosition(
+      ({ coords }) => mapController.flyTo([coords.longitude, coords.latitude], 15),
+      () => setError("無法取得目前位置，請確認定位權限。"),
+      { enableHighAccuracy: true, timeout: 8000 },
+    );
   };
+
   return (
-    <Box
-      sx={{
-        position: "absolute",
-        top: 20,
-        right: 5,
-        zIndex: 1000,
-      }}
-    >
-      <MyDrawer />
+    <Box sx={{ position: "relative", height, width: "100%", overflow: "hidden", bgcolor: "#DCE8E5" }}>
+      <Box ref={mapContainer} sx={{ position: "absolute", inset: 0, "& .ol-zoom": { top: 1, left: 1 }, "& .ol-attribution": { fontSize: 11 } }} aria-label="臺灣即時路況地圖" />
+      {isLoading && <Box role="status" aria-label="正在載入地圖" sx={{ position: "absolute", inset: 0, display: "grid", placeItems: "center", bgcolor: "rgba(242,245,244,.76)", zIndex: 2 }}><CircularProgress color="secondary" /></Box>}
+      {(error || (isRoadEventError && !dismissedApiError)) && <Alert severity="warning" onClose={() => { setError(null); setDismissedApiError(true); }} sx={{ position: "absolute", top: 16, left: 16, right: 72, zIndex: 3 }}>{error ?? "道路事件暫時無法載入。"}</Alert>}
+      <IconButton onClick={locateUser} aria-label="定位到我的位置" sx={{ position: "absolute", right: 16, top: 16, zIndex: 3, bgcolor: "background.paper", color: "primary.main", boxShadow: "0 8px 22px rgba(11,46,60,.18)", "&:hover": { bgcolor: "background.paper" } }}><MyLocationRoundedIcon /></IconButton>
+      {selectedEvent && <Paper role="dialog" aria-label="道路事件詳細資訊" sx={{ position: "absolute", left: 16, bottom: 48, zIndex: 4, width: { xs: "calc(100% - 32px)", sm: 340 }, p: 2, bgcolor: "rgba(255,255,255,.96)" }}>
+        <IconButton size="small" aria-label="關閉事件資訊" onClick={() => setSelectedEvent(null)} sx={{ position: "absolute", right: 8, top: 8 }}><CloseRoundedIcon fontSize="small" /></IconButton>
+        <Typography component="h3" variant="subtitle1" fontWeight={800} sx={{ pr: 4 }}>{selectedEvent.eventTitle}</Typography>
+        <Typography variant="body2" color="text.secondary" sx={{ mt: 0.5 }}>{selectedEvent.location}</Typography>
+        <Typography variant="caption" color="text.secondary" sx={{ display: "block", mt: 1 }}>{selectedEvent.description}</Typography>
+      </Paper>}
+      <Chip role="status" label={`${mapPoints.length} 件事件・自動聚合`} size="small" sx={{ position: "absolute", right: 12, bottom: 28, zIndex: 3, bgcolor: "rgba(16,47,58,.9)", color: "#FFFFFF", fontSize: 11 }} />
     </Box>
   );
-};
-
-const TrafficMap = () => {
-  const mapDiv = useRef<HTMLDivElement>(null);
-  const { view } = useTrafficMapContext();
-  const { trafficEvents, parkingLots, selectedLayers } = useTrafficData();
-  useEffect(() => {
-    initializeMap();
-  }, []);
-
-  useEffect(() => {
-    // if (view.current) {
-    //   updateMapLayers();
-    // }
-  }, [trafficEvents, parkingLots, selectedLayers]);
-
-  const initializeMap = async () => {
-    try {
-      // 國土測繪中心 WMTS 服務
-      const basemapLayers = {
-        // 通用版電子地圖
-        emap: "https://wmts.nlsc.gov.tw/wmts/EMAP/default/GoogleMapsCompatible/{z}/{y}/{x}",
-
-        // 地形圖
-        terrain:
-          "https://wmts.nlsc.gov.tw/wmts/DTM/default/GoogleMapsCompatible/{z}/{y}/{x}",
-      };
-
-      const taiwanBaseMapLayer = new WebTileLayer({
-        urlTemplate: basemapLayers.emap,
-        copyright: "© 內政部國土測繪中心",
-      });
-      const taiwanBaseMap = new Basemap({
-        baseLayers: [taiwanBaseMapLayer],
-        title: "台灣電子地圖",
-        // id: "taiwan-emap",
-      });
-      // 加入支援聚合的 FeatureLayer
-      // const featureLayer = new FeatureLayer({
-      //   url: "你的圖層服務網址", // 例如: https://services.arcgis.com/xxx/arcgis/rest/services/your_layer/FeatureServer/0
-      //   featureReduction: {
-      //     type: "cluster",
-      //     clusterRadius: "100px", // 聚合半徑
-      //     popupTemplate: {
-      //       title: "群集內有 {cluster_count} 筆資料",
-      //       content: "點擊展開查看詳細資料",
-      //     },
-      //   },
-      // });
-
-      // const map = new Map({
-      //   // basemap: taiwanBaseMap,
-      // });
-      // const graphicsLayer = new GraphicsLayer();
-      const map = new Map({
-        basemap: taiwanBaseMap,
-        // layers: [graphicsLayer],
-      });
-      // map.add(featureLayer);
-
-      view.current = new MapView({
-        container: mapDiv.current,
-        map,
-        center: [120.6478, 24.1477], // 台中市中心
-        zoom: 13,
-        ui: {
-          components: ["zoom"], // 移除預設的 compass，我們用 MUI 控制
-        },
-      });
-
-      // 建立圖層
-      // view.current.map.addMany([
-      //   new GraphicsLayer({ id: "traffic-events" }),
-      //   new GraphicsLayer({ id: "parking-lots" }),
-      //   new GraphicsLayer({ id: "cameras" }),
-      //   new GraphicsLayer({ id: "construction" }),
-      // ]);
-
-      console.log("地圖初始化完成");
-    } catch (error) {
-      console.error("地圖初始化失敗:", error);
-    }
-  };
-
-  const updateMapLayers = async () => {
-    try {
-      const trafficLayer = view.current?.map?.findLayerById("traffic-events");
-      const parkingLayer = view.current?.map?.findLayerById("parking-lots");
-      if (trafficLayer) trafficLayer.removeAll();
-      if (parkingLayer) parkingLayer.removeAll();
-
-      // 添加交通事件
-      // if (selectedLayers.traffic && trafficEvents.length > 0) {
-      //   const trafficGraphics = trafficEvents
-      //     .filter((event) => event.location)
-      //     .map((event) => {
-      //       const point = new Point({
-      //         longitude: event.location.lng,
-      //         latitude: event.location.lat,
-      //       });
-
-      //       const symbol = new SimpleMarkerSymbol({
-      //         style: "circle",
-      //         color: getEventColor(event.type),
-      //         size: "12px",
-      //         outline: { color: "white", width: 2 },
-      //       });
-
-      //       return new Graphic({
-      //         geometry: point,
-      //         symbol: symbol,
-      //         attributes: event,
-      //         popupTemplate: {
-      //           title: "🚨 {title}",
-      //           content: `
-      //             <div style="padding: 10px;">
-      //               <p><strong>事件類型:</strong> {type}</p>
-      //               <p><strong>描述:</strong> {description}</p>
-      //               <p><strong>開始時間:</strong> {startTime}</p>
-      //             </div>
-      //           `,
-      //         },
-      //       });
-      //     });
-
-      //   trafficLayer?.addMany(trafficGraphics);
-      // }
-
-      // 添加停車場
-      // if (selectedLayers.parking && parkingLots.length > 0) {
-      //   const parkingGraphics = parkingLots
-      //     .filter((lot) => lot.location && lot.location.lat && lot.location.lng)
-      //     .map((lot) => {
-      //       const point = new Point({
-      //         longitude: lot.location.lng,
-      //         latitude: lot.location.lat,
-      //       });
-
-      //       const symbol = new SimpleMarkerSymbol({
-      //         style: "square",
-      //         color: [33, 150, 243, 0.8],
-      //         size: "16px",
-      //         outline: { color: "white", width: 2 },
-      //       });
-
-      //       return new Graphic({
-      //         geometry: point,
-      //         symbol: symbol,
-      //         attributes: lot,
-      //         popupTemplate: {
-      //           title: "🅿️ {name}",
-      //           content: `
-      //             <div style="padding: 10px;">
-      //               <p><strong>總車位:</strong> {totalSpaces}</p>
-      //               <p><strong>剩餘車位:</strong> {availableSpaces}</p>
-      //             </div>
-      //           `,
-      //         },
-      //       });
-      //     });
-
-      //   parkingLayer.addMany(parkingGraphics);
-      // }
-    } catch (error) {
-      console.error("更新地圖圖層失敗:", error);
-    }
-  };
-
-  return (
-    <Box
-      ref={mapDiv}
-      sx={{
-        height: "550px",
-        width: "100%",
-        "& .esri-ui-corner": {
-          zIndex: 1000,
-        },
-      }}
-    />
-  );
-};
-
-// services/tdxService.js (簡化版本)
-class TDXService {
-  constructor() {
-    this.baseURL = "https://tdx.transportdata.tw/api";
-  }
-
-  async getTrafficEvents(city = "Taichung") {
-    try {
-      // 模擬 API 回應
-      return [
-        {
-          id: "1",
-          title: "文心路車禍",
-          description: "文心路與台灣大道路口發生車禍",
-          type: 1,
-          location: { lng: 120.6478, lat: 24.1477 },
-          startTime: new Date().toISOString(),
-        },
-        {
-          id: "2",
-          title: "五權路施工",
-          description: "五權路進行道路維修",
-          type: 2,
-          location: { lng: 120.6521, lat: 24.1398 },
-          startTime: new Date().toISOString(),
-        },
-      ];
-    } catch (error) {
-      console.error("取得交通事件失敗:", error);
-      return [];
-    }
-  }
-
-  async getParkingData(city = "Taichung") {
-    try {
-      // 模擬停車場資料
-      return [
-        {
-          id: "P1",
-          name: "台中火車站停車場",
-          location: { lng: 120.6478, lat: 24.1477 },
-          totalSpaces: 100,
-          availableSpaces: 45,
-        },
-        {
-          id: "P2",
-          name: "中區停車場",
-          location: { lng: 120.6542, lat: 24.1469 },
-          totalSpaces: 80,
-          availableSpaces: 23,
-        },
-      ];
-    } catch (error) {
-      console.error("取得停車場資料失敗:", error);
-      return [];
-    }
-  }
 }
-export const tdxService = new TDXService();

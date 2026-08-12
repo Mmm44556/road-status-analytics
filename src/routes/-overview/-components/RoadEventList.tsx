@@ -11,20 +11,20 @@ import {
   CardActionArea,
   CardContent,
   Divider,
-  type Theme,
 } from "@mui/material";
 import InputAdornment from "@mui/material/InputAdornment";
 import SearchIcon from "@mui/icons-material/Search";
 import { format } from "date-fns";
 import getEventDescription from "@/config/eventType";
-import mockLiveRoadEvents from "@/mock/liveRoadEvents.json";
-import mockPreviewEvents from "@/mock/previewEvents.json";
 import debounce from "@/utils/debounce";
 import { useTrafficMapContext } from "@/hooks/useGetContext";
-import { parseWKTPolygon } from "@/service/arcGIS/parser";
-import { Point, Polygon } from "@arcgis/core/geometry";
-import Graphic from "@arcgis/core/Graphic";
-import locationIcon from "@/assets/location-fill.svg";
+import {
+  useRoadEvents,
+  type LiveRoadEvent,
+  type PreviewRoadEvent,
+} from "@/service/trafficApi";
+import { parseWKTPolygon } from "@/service/map/wkt";
+import { getWktRepresentativePoint } from "@/service/map/mapFeatures";
 interface TabPanelProps {
   children?: React.ReactNode;
   dir?: string;
@@ -57,12 +57,15 @@ function a11yProps(index: number) {
   };
 }
 
-function RoadEventList() {
+type RoadEventListProps = { city: string };
+
+function RoadEventList({ city }: RoadEventListProps) {
   const [activeEvent, setActiveEvent] = useState<string | null>(null);
   const theme = useTheme();
   const [value, setValue] = useState(0);
   const [searchValue, setSearchValue] = useState("");
   const debouncedSearch = debounce(setSearchValue, 500);
+  const { data, isPending, isError } = useRoadEvents(city);
 
   const handleSearch = (event: React.ChangeEvent<HTMLInputElement>) => {
     debouncedSearch(event.target.value);
@@ -73,13 +76,13 @@ function RoadEventList() {
     });
   };
 
-  const previewEvents = useMemo<EventPreview[]>(
-    () => filterFormat(mockPreviewEvents.Events, "EventPreview"),
-    []
+  const previewEvents = useMemo<PreviewRoadEvent[]>(
+    () => filterFormat(data?.data.preview.Events ?? [], "EventPreview"),
+    [data]
   );
-  const liveEvents = useMemo<LiveEvent[]>(
-    () => filterFormat(mockLiveRoadEvents.LiveEvents, "LiveEvent"),
-    []
+  const liveEvents = useMemo<LiveRoadEvent[]>(
+    () => filterFormat(data?.data.live.LiveEvents ?? [], "LiveEvent"),
+    [data]
   );
   // 事件過濾
   const filteredEvents = useMemo(() => {
@@ -163,6 +166,9 @@ function RoadEventList() {
 
       {/* 預告性事件 */}
       <TabPanel value={value} index={0} dir={theme.direction}>
+        {isPending && <EventStatus message="正在取得 TDX 道路事件…" />}
+        {isError && <EventStatus message="目前無法取得道路事件，請稍後再試。" />}
+        {!isPending && !isError && filteredEvents.length === 0 && <EventStatus message="目前沒有符合條件的預告事件。" />}
         {filteredEvents.map((event) => {
           return (
             <Fragment key={event.EventID}>
@@ -177,6 +183,9 @@ function RoadEventList() {
         })}
       </TabPanel>
       <TabPanel value={value} index={1} dir={theme.direction}>
+        {isPending && <EventStatus message="正在取得 TDX 即時路況…" />}
+        {isError && <EventStatus message="目前無法取得即時路況，請稍後再試。" />}
+        {!isPending && !isError && filteredLiveEvents.length === 0 && <EventStatus message="目前沒有符合條件的即時事件。" />}
         {filteredLiveEvents.map((event) => {
           return (
             <Fragment key={event.EventID}>
@@ -194,37 +203,13 @@ function RoadEventList() {
   );
 }
 
-type EventBase = {
-  EventID: string;
-  EventTitle: string;
-  Description: string;
-  EventType: number;
-  EventSubType: number;
-  EventStep: number;
-  EffectiveTime: string;
-  LocationType: number;
-  Location: {
-    Other: string;
-  };
-  Source: string;
-  PublishTime: string;
-  LastUpdateTime: string;
-};
-
-type EventPreview = EventBase & {
-  ExpireTime: string;
-  Geometry: string;
-};
-
 type CardProps = React.ComponentProps<typeof Card>;
 
 type EventCardProps = {
-  event: EventPreview;
+  event: PreviewRoadEvent;
   setActiveEvent: React.Dispatch<React.SetStateAction<string | null>>;
   activeEvent: string | null;
 } & CardProps;
-
-const eventSet = new Set<string>();
 
 function EventCard({
   event,
@@ -232,7 +217,7 @@ function EventCard({
   activeEvent,
   ...props
 }: EventCardProps) {
-  const { view } = useTrafficMapContext();
+  const { mapController } = useTrafficMapContext();
 
   const eventDescription = getEventDescription(
     event.EventType.toString(),
@@ -240,53 +225,24 @@ function EventCard({
   );
   const handleFlyTo = () => {
     const points = parseWKTPolygon(event.Geometry);
-    if (!points) return;
-
-    const polygon = new Polygon({
-      rings: [points],
-      spatialReference: { wkid: 4326 },
-    });
-    console.log({ eventDescription, event });
+    const position = getWktRepresentativePoint(event.Positions);
+    if (!points && !position) return;
 
     setActiveEvent(event.EventID);
-    if (!eventSet.has(event.EventID)) {
-      eventSet.add(event.EventID);
-
-      // 設定圖層
-      view?.current?.graphics.add(
-        new Graphic({
-          geometry: polygon,
-          symbol: {
-            type: "simple-fill",
-            color: [255, 0, 0, 0.3],
-            outline: {
-              color: [255, 0, 0],
-              width: 2,
-            },
-          },
-        })
-      );
-      console.log(eventDescription.iconDataUri);
-      // 設定地點標示
-      view?.current?.graphics.add(
-        new Graphic({
-          geometry: polygon,
-
-          symbol: {
-            type: "picture-marker",
-            yoffset: 20,
-            url: eventDescription.iconDataUri,
-            width: 28,
-            height: 28,
-          },
-        })
-      );
-    }
-
-    view?.current?.goTo({
-      target: polygon.rings[0][0],
-      zoom: 18,
-    });
+    mapController.showGeometry(points
+      ? {
+          id: event.EventID,
+          type: "polygon",
+          coordinates: points as [number, number][],
+          color: eventDescription.iconColor,
+        }
+      : {
+          id: event.EventID,
+          type: "point",
+          coordinates: position!,
+          color: eventDescription.iconColor,
+        });
+    mapController.flyTo((points?.[0] as [number, number] | undefined) ?? position!, 18);
   };
 
   return (
@@ -305,20 +261,7 @@ function EventCard({
     >
       <CardActionArea onClick={handleFlyTo}>
         <CardContent sx={{ display: "flex", alignItems: "center", gap: 1 }}>
-          {eventDescription.Icon && (
-            <eventDescription.Icon
-              sx={{
-                fontSize: {
-                  xs: 24,
-                  sm: 28,
-                  md: 32,
-                  lg: 36,
-                  xl: 40,
-                },
-                color: eventDescription.iconColor,
-              }}
-            />
-          )}
+          {eventDescription.Icon && <Box sx={{ width: 40, height: 40, flex: "0 0 40px", display: "grid", placeItems: "center", borderRadius: 2, bgcolor: eventDescription.iconBackground, color: eventDescription.iconColor }}><eventDescription.Icon sx={{ fontSize: 24 }} /></Box>}
           <Box
             sx={{ display: "flex", flexDirection: "column" }}
             component="span"
@@ -371,11 +314,8 @@ function EventCard({
   );
 }
 
-type LiveEvent = EventBase & {
-  Positions: string;
-};
 type LiveEventCardProps = {
-  event: LiveEvent;
+  event: LiveRoadEvent;
   setActiveEvent: React.Dispatch<React.SetStateAction<string | null>>;
   activeEvent: string | null;
 } & CardProps;
@@ -386,54 +326,21 @@ function LiveEventCard({
   activeEvent,
   ...props
 }: LiveEventCardProps) {
-  const { view } = useTrafficMapContext();
+  const { mapController } = useTrafficMapContext();
   const handleFlyTo = () => {
     const match = event.Positions.match(/POINT\s*\(([^)]+)\)/);
     if (match) {
       const [lng, lat] = match[1].split(" ").map(Number);
       if (!isNaN(lng) && !isNaN(lat)) {
-        const point = new Point({
-          longitude: lng,
-          latitude: lat,
-          spatialReference: { wkid: 4326 },
-        });
-
         setActiveEvent(event.EventID);
 
-        if (!eventSet.has(event.EventID)) {
-          eventSet.add(event.EventID);
-          view?.current?.graphics.add(
-            new Graphic({
-              geometry: point,
-              symbol: {
-                type: "simple-marker",
-                color: [255, 0, 0],
-                size: "12px",
-                outline: {
-                  color: [255, 255, 255],
-                  width: 1,
-                },
-              },
-            })
-          );
-
-          view?.current?.graphics.add(
-            new Graphic({
-              geometry: point,
-              symbol: {
-                type: "picture-marker",
-                url: eventDescription.iconDataUri,
-                width: 28,
-                height: 28,
-              },
-            })
-          );
-        }
-
-        view?.current?.goTo({
-          target: point,
-          zoom: 18,
+        mapController.showGeometry({
+          id: event.EventID,
+          type: "point",
+          coordinates: [lng, lat],
+          color: eventDescription.iconColor,
         });
+        mapController.flyTo([lng, lat], 18);
       }
     }
   };
@@ -458,11 +365,7 @@ function LiveEventCard({
     >
       <CardActionArea onClick={handleFlyTo}>
         <CardContent sx={{ display: "flex", alignItems: "center", gap: 1 }}>
-          {eventDescription.Icon && (
-            <eventDescription.Icon
-              sx={{ fontSize: 32, color: eventDescription.iconColor }}
-            />
-          )}
+          {eventDescription.Icon && <Box sx={{ width: 40, height: 40, flex: "0 0 40px", display: "grid", placeItems: "center", borderRadius: 2, bgcolor: eventDescription.iconBackground, color: eventDescription.iconColor }}><eventDescription.Icon sx={{ fontSize: 24 }} /></Box>}
           <Box
             sx={{ display: "flex", flexDirection: "column" }}
             component="span"
@@ -502,12 +405,12 @@ function LiveEventCard({
   );
 }
 
-function filterFormat<T extends EventPreview | LiveEvent>(
+function filterFormat<T extends PreviewRoadEvent | LiveRoadEvent>(
   events: T[],
-  type: T extends EventPreview ? "EventPreview" : "LiveEvent"
+  type: T extends PreviewRoadEvent ? "EventPreview" : "LiveEvent"
 ): T[] {
   if (type === "EventPreview") {
-    return (events as EventPreview[]).map((event) => ({
+    return (events as PreviewRoadEvent[]).map((event) => ({
       ...event,
       PublishTime: format(new Date(event.PublishTime), "yyyy-MM-dd HH:mm:ss"),
       EffectiveTime: format(
@@ -526,6 +429,10 @@ function filterFormat<T extends EventPreview | LiveEvent>(
       PublishTime: format(new Date(event.PublishTime), "yyyy-MM-dd HH:mm:ss"),
     })) as T[];
   }
+}
+
+function EventStatus({ message }: { message: string }) {
+  return <Typography color="text.secondary" sx={{ px: 2, py: 3, textAlign: "center" }}>{message}</Typography>;
 }
 
 export default memo(RoadEventList);

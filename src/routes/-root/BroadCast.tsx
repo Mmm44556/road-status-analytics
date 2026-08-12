@@ -14,7 +14,6 @@ import { blue, grey } from "@mui/material/colors";
 import IconButton from "@mui/material/IconButton";
 import CloseIcon from "@mui/icons-material/Close";
 import { motion } from "framer-motion";
-import provinceHightWayMsg from "@/mock/provinceHightWayMsg.json";
 import mock_cityTrafficEventMsg from "@/mock/cityTrafficEventMsg.json";
 /**
  * API:

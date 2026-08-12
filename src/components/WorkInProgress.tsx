@@ -1,4 +1,3 @@
-import React from "react";
 import programmer from "@/assets/images/programmer.png";
 import { Box } from "@mui/material";
 

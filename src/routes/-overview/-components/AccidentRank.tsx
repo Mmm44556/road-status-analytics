@@ -1,40 +1,63 @@
-import ReactECharts from "echarts-for-react";
-import mock_cityRank from "~/server/traffic/cache/city_rank.json";
-import { generateChartOption } from "@/utils/generateChartOption";
-import { Paper } from "@mui/material";
+import ReactECharts from 'echarts-for-react';
+import { generateChartOption } from '@/utils/generateChartOption';
+import { Alert, Paper, Skeleton } from '@mui/material';
+import {
+  getLatestPeriod,
+  getTopCities,
+  useAccidentSummary,
+} from '@/service/trafficApi';
 
 export default function AccidentRank() {
-  const orderedCityRank = structuredClone(mock_cityRank)
-    .splice(0, 5)
-    .sort((a, b) => b.count - a.count)
-    .reverse();
+  const { data, isPending, error } = useAccidentSummary();
+
+  if (isPending) {
+    return (
+      <Skeleton variant="rounded" height={350} aria-label="正在載入事故排行" />
+    );
+  }
+
+  if (error) {
+    return <Alert severity="error">事故排行載入失敗：{error.message}</Alert>;
+  }
+
+  const period = getLatestPeriod(data.data);
+  if (!period) {
+    return <Alert severity="info">目前沒有事故排行資料</Alert>;
+  }
+  const orderedCityRank = getTopCities(
+    data.data,
+    period.year,
+    period.month,
+    5,
+  ).reverse();
+
   const option = generateChartOption({
     title: {
-      text: "上個月交通事故排行 Top 5",
+      text: `${period.year} 年 ${period.month} 月交通事故排行 Top 5`,
       left: 15,
       top: 15,
     },
     tooltip: {
-      trigger: "axis",
+      trigger: 'axis',
       axisPointer: {
-        type: "shadow",
+        type: 'shadow',
       },
     },
     grid: {
-      left: "8%",
-      right: "8%",
-      bottom: "3%",
+      left: '8%',
+      right: '8%',
+      bottom: '3%',
       containLabel: true,
     },
     xAxis: {
-      type: "value",
+      type: 'value',
       boundaryGap: [0, 0.01],
       axisLabel: {
         rotate: 45,
       },
     },
     yAxis: {
-      type: "category",
+      type: 'category',
       data: orderedCityRank.map((item) => item.city),
       axisLabel: {
         fontSize: 14,
@@ -42,7 +65,7 @@ export default function AccidentRank() {
     },
     series: [
       {
-        type: "bar",
+        type: 'bar',
         data: orderedCityRank.map((item) => item.count),
         animationDuration: 1000,
         animationDelay: function (idx) {
