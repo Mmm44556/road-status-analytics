@@ -1,34 +1,27 @@
-from fastapi import FastAPI
-from fastapi.responses import JSONResponse
-from datetime import datetime
-from server.traffic.route import router as traffic_router
-from server.traffic.config import ALLOWED_ORIGINS
 from fastapi.middleware.cors import CORSMiddleware
+from fastapi import FastAPI
+
+from server.api.router import api_router
+from server.core.config import get_settings
 
 
-app = FastAPI()
+settings = get_settings()
+app = FastAPI(title="路況通 API", version="1.0.0")
 app.add_middleware(
     CORSMiddleware,
-    allow_origins=ALLOWED_ORIGINS,
+    allow_origins=settings.allowed_origins,
     allow_credentials=False,
     allow_methods=["GET"],
     allow_headers=["Accept", "Content-Type"],
 )
-app.include_router(traffic_router)
+app.include_router(api_router)
 
 
 @app.get("/")
-def home():
-    return JSONResponse({
-        "name": "交通事故資料代理服務",
-        "description": "提供台灣即時交通事故資料的API",
-        "endpoints": [
-            {"path": "/traffic/A1", "description": "A1類交通事故資料 (死亡車禍)"},
-            {"path": "/traffic/A2", "description": "A2類交通事故資料 (受傷車禍)"},
-            {"path": "/traffic/A2/zip", "description": "下載A2類交通事故資料的原始ZIP檔案"},
-            {"path": "/traffic/A3", "description": "A3類交通事故資料 (財損車禍)"},
-            {"path": "/traffic/all", "description": "所有類型的交通事故資料"},
-            {"path": "/traffic/aggregate", "description": "聚合所有類型的交通事故資料"}
-        ],
-        "last_updated": datetime.now().isoformat()
-    })
+def home() -> dict[str, str]:
+    return {"name": "路況通 API", "docs": "/docs"}
+
+
+@app.get("/health", tags=["system"])
+def health() -> dict[str, str]:
+    return {"status": "ok"}

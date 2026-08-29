@@ -1,5 +1,5 @@
 import { createContext } from "react";
-import type { MapController } from "@/service/map/mapController";
+import type { MapController } from "@/service/map/shared/mapController";
 
 export const TrafficMapViewContext = createContext<{
   mapController: MapController;

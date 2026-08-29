@@ -1,0 +1,95 @@
+---
+title: FastAPI 後端分層架構
+status: accepted
+updated: 2026-08-29
+---
+
+# FastAPI 後端分層架構
+
+## 決策
+
+採用以功能責任區分的精簡分層：
+
+```text
+server/
+├── main.py                         應用程式入口與 middleware
+├── api/
+│   ├── router.py                   組合所有 API router
+│   └── routes/
+│       └── road_events.py          HTTP controller
+├── clients/
+│   └── tdx_client.py               TDX OAuth 與 HTTP 呼叫
+├── services/
+│   └── road_event_service.py       縣市轉換、快取與流程邏輯
+├── schemas/
+│   └── road_event.py               Pydantic 回應契約
+├── core/
+│   └── config.py                   環境設定
+├── dependencies.py                 依賴組裝與 FastAPI Depends
+└── tests/                           單元測試
+```
+
+## 請求流程
+
+```mermaid
+flowchart LR
+    Browser[React 前端] --> Router[API Router／Controller]
+    Router --> Service[RoadEventService]
+    Service --> Client[TdxClient]
+    Client --> TDX[TDX API]
+```
+
+TDX 的 `Event` 與 `LiveEvent` 縣市覆蓋不同。服務層會在 `Event` 未涵蓋的縣市回傳空的預告事件集合，同時保留可用的 `LiveEvent`，避免整個交通事件圖層因單一上游端點失敗。
+
+## 各層責任
+
+### Router／Controller
+
+- 定義 URL、HTTP method、query parameters 與 response model。
+- 使用 FastAPI `Depends` 取得 service。
+- 將領域或外部服務錯誤轉成 HTTP status code。
+- 不處理 OAuth、快取或資料來源細節。
+
+### Service
+
+- 實作與 HTTP 無關的應用邏輯。
+- 正規化縣市名稱。
+- 協調 preview 與 live 事件查詢。
+- 控制兩分鐘記憶體快取。
+
+### Client
+
+- 封裝 TDX URL、OAuth token 與 requests session。
+- 管理 token 到期與 HTTP timeout。
+- 不包含 FastAPI response 或畫面邏輯。
+
+### Schema
+
+- 定義公開 API 的輸入輸出形狀。
+- 讓 FastAPI 產生 OpenAPI 文件並驗證回應。
+
+### Core／Dependencies
+
+- `core` 只處理跨功能設定。
+- `dependencies.py` 建立並快取 service，測試時可以 override。
+
+## 為什麼沒有 Repository
+
+Repository 適合隔離資料庫或永久儲存。目前系統只有 TDX HTTP 資料來源與記憶體快取，增加 Repository 只會重複 Client 的責任。未來加入 PostgreSQL、Redis 或歷史資料庫時再建立 `repositories/`。
+
+## 命名說明
+
+FastAPI 官方使用 `APIRouter` 拆分大型應用，因此本專案以 `api/routes` 作為 controller 層。若改名為 `controllers` 也能運作，但會偏離 FastAPI 生態常見命名，沒有實質架構收益。
+
+## 邊界
+
+- TDX Client Secret 只存在後端環境變數。
+- 外部回應在前端 Zod 邊界再次驗證。
+- Router 不直接呼叫 `requests`。
+- Service 不依賴 FastAPI request／response。
+- Client 不知道 React 或 OpenLayers 的存在。
+
+## 官方參考
+
+- [FastAPI：Bigger Applications - Multiple Files](https://fastapi.tiangolo.com/tutorial/bigger-applications/)
+- [FastAPI：Dependencies](https://fastapi.tiangolo.com/tutorial/dependencies/)

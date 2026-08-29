@@ -1,6 +1,7 @@
 import { useContext } from "react";
 import { TrafficMapViewContext } from "@/context";
 
+/** 取得目前頁面的地圖控制器。 */
 export const useTrafficMapContext = () => {
   const context = useContext(TrafficMapViewContext);
   if (!context) {

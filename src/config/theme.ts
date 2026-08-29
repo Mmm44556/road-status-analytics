@@ -1,4 +1,5 @@
 import { createTheme } from "@mui/material/styles";
+import { radiusTokens, typographyTokens } from "./designTokens";
 import { uiColors } from "./semanticColors";
 
 declare module "@mui/material/styles" {
@@ -21,20 +22,20 @@ export const theme = createTheme({
   },
   typography: {
     fontFamily: 'Inter, "Noto Sans TC", "PingFang TC", sans-serif',
-    h1: { fontSize: "clamp(1.6rem, 3vw, 2.35rem)", fontWeight: 750, lineHeight: 1.15, letterSpacing: "-0.035em" },
-    h2: { fontSize: "clamp(1.2rem, 2vw, 1.55rem)", fontWeight: 700, letterSpacing: "-0.02em" },
-    h3: { fontSize: "1rem", fontWeight: 700 },
-    button: { textTransform: "none", fontWeight: 700 },
+    h1: { fontSize: "clamp(1.6rem, 3vw, 2.35rem)", fontWeight: typographyTokens.fontWeight.heavy, lineHeight: 1.15, letterSpacing: "-0.035em" },
+    h2: { fontSize: "clamp(1.2rem, 2vw, 1.55rem)", fontWeight: typographyTokens.fontWeight.bold, letterSpacing: "-0.02em" },
+    h3: { fontSize: typographyTokens.fontSize.title, fontWeight: typographyTokens.fontWeight.bold },
+    body2: { fontSize: typographyTokens.fontSize.body, lineHeight: 1.6 },
+    caption: { fontSize: typographyTokens.fontSize.caption, lineHeight: 1.5 },
+    button: { textTransform: "none", fontWeight: typographyTokens.fontWeight.bold },
   },
-  shape: { borderRadius: 10 },
+  shape: { borderRadius: radiusTokens.base },
   breakpoints: { values: { xs: 0, sm: 600, md: 900, lg: 1200, xl: 1280, "2xl": 1536 } },
   components: {
     MuiCssBaseline: { styleOverrides: { body: { backgroundImage: "radial-gradient(circle at 85% 0%, rgba(14,138,122,.08), transparent 28%)" } } },
     MuiPaper: { defaultProps: { elevation: 0 }, styleOverrides: { root: { border: "1px solid #DCE5E3" } } },
     MuiCard: { defaultProps: { elevation: 0 }, styleOverrides: { root: { border: "1px solid #DCE5E3" } } },
-    MuiButton: { styleOverrides: { root: { minHeight: 44, borderRadius: 8 } } },
+    MuiButton: { styleOverrides: { root: { minHeight: 44, borderRadius: radiusTokens.control } } },
     MuiIconButton: { styleOverrides: { root: { minWidth: 44, minHeight: 44 } } },
   },
 });
-
-export const fontSize = { xs: 12, sm: 14, md: 16, lg: 18, xl: 22, "2xl": 24 };
