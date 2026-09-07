@@ -1,18 +1,11 @@
 from __future__ import annotations
 
 import time
-from dataclasses import dataclass
-from threading import Lock
 from typing import Any, Callable
 
 from server.clients.tdx_client import TdxClient
+from server.services.coordinated_ttl_cache import CoordinatedTtlCache
 from server.services.road_event_service import normalize_city
-
-
-@dataclass(frozen=True)
-class CacheEntry:
-    expires_at: float
-    value: Any
 
 
 class StationNotFoundError(Exception):
@@ -70,25 +63,25 @@ class BikeService:
         *,
         static_ttl_seconds: int = 21_600,
         live_ttl_seconds: int = 60,
+        static_stale_seconds: int = 3_600,
+        live_stale_seconds: int = 300,
         clock: Callable[[], float] = time.time,
+        cache: CoordinatedTtlCache | None = None,
     ) -> None:
         self._client = client
         self._static_ttl_seconds = static_ttl_seconds
         self._live_ttl_seconds = live_ttl_seconds
-        self._clock = clock
-        self._cache: dict[str, CacheEntry] = {}
-        self._lock = Lock()
+        self._static_stale_seconds = static_stale_seconds
+        self._live_stale_seconds = live_stale_seconds
+        self._cache = cache or CoordinatedTtlCache(clock=clock)
 
     def _get_cached(self, key: str, ttl: int, loader: Callable[[], Any]) -> Any:
-        now = self._clock()
-        with self._lock:
-            cached = self._cache.get(key)
-            if cached and now < cached.expires_at:
-                return cached.value
-        value = loader()
-        with self._lock:
-            self._cache[key] = CacheEntry(now + ttl, value)
-        return value
+        stale = (
+            self._static_stale_seconds
+            if ttl == self._static_ttl_seconds
+            else self._live_stale_seconds
+        )
+        return self._cache.get(key, ttl, stale, loader)
 
     def get_city_bikes(self, city: str) -> dict[str, Any]:
         city_code = normalize_city(city)

@@ -40,18 +40,22 @@ class CctvServiceTests(unittest.TestCase):
         self.assertEqual(first, second)
         self.assertEqual(len(client.calls), 1)
 
-    def test_refetches_after_ttl_expires(self):
+    def test_returns_stale_value_then_refreshes_after_ttl_expires(self):
         client = FakeClient()
         current_time = {"value": 1_000.0}
         service = CctvService(
             client, ttl_seconds=60, clock=lambda: current_time["value"]
         )
 
-        service.get_city_cctv("高雄市", top=20)
+        first = service.get_city_cctv("高雄市", top=20)
         current_time["value"] += 61
-        service.get_city_cctv("高雄市", top=20)
+        stale = service.get_city_cctv("高雄市", top=20)
 
+        self.assertEqual(stale, first)
+        service._cache.wait_for_refreshes()
         self.assertEqual(len(client.calls), 2)
+        refreshed = service.get_city_cctv("高雄市", top=20)
+        self.assertEqual(refreshed["cctvs"][0]["CCTVID"], "2")
 
     def test_resolves_only_a_camera_url_from_the_tdx_city_inventory(self):
         client = FakeClient()

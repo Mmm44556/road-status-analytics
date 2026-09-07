@@ -3,19 +3,12 @@ from __future__ import annotations
 import socket
 import time
 from ipaddress import ip_address
-from dataclasses import dataclass
-from threading import Lock
 from typing import Any, Callable
 from urllib.parse import urlsplit
 
 from server.clients.tdx_client import TdxClient
+from server.services.coordinated_ttl_cache import CoordinatedTtlCache
 from server.services.road_event_service import normalize_city
-
-
-@dataclass(frozen=True)
-class CacheEntry:
-    expires_at: float
-    value: dict[str, Any]
 
 
 def _hostname_resolves_to_public_address(hostname: str) -> bool:
@@ -38,29 +31,29 @@ class CctvService:
         client: TdxClient,
         *,
         ttl_seconds: int = 21_600,
+        stale_seconds: int = 3_600,
         clock: Callable[[], float] = time.time,
+        cache: CoordinatedTtlCache | None = None,
     ) -> None:
         self._client = client
         self._ttl_seconds = ttl_seconds
-        self._clock = clock
-        self._cache: dict[tuple[str, int], CacheEntry] = {}
-        self._lock = Lock()
+        self._stale_seconds = stale_seconds
+        self._cache = cache or CoordinatedTtlCache(clock=clock)
 
     def get_city_cctv(self, city: str, *, top: int) -> dict[str, Any]:
         city_code = normalize_city(city)
-        cache_key = (city_code, top)
-        now = self._clock()
+        cache_key = f"cctv:{city_code}:{top}"
         # TDX 的 CCTV 清單每 6 小時才更新一次，長 TTL 可避免無謂請求與觸發配額限制。
-        with self._lock:
-            cached = self._cache.get(cache_key)
-            if cached and now < cached.expires_at:
-                return cached.value
+        def load_cctv() -> dict[str, Any]:
+            payload = self._client.fetch_city_cctv(city_code, top=top)
+            return {"city": city_code, "cctvs": payload.get("CCTVs", [])}
 
-        payload = self._client.fetch_city_cctv(city_code, top=top)
-        value = {"city": city_code, "cctvs": payload.get("CCTVs", [])}
-        with self._lock:
-            self._cache[cache_key] = CacheEntry(now + self._ttl_seconds, value)
-        return value
+        return self._cache.get(
+            cache_key,
+            self._ttl_seconds,
+            self._stale_seconds,
+            load_cctv,
+        )
 
     def get_camera_stream_url(self, city: str, camera_id: str, *, top: int) -> str:
         cameras = self.get_city_cctv(city, top=top)["cctvs"]

@@ -45,6 +45,24 @@ TDX_CLIENT_ID=your-client-id
 TDX_CLIENT_SECRET=your-client-secret
 ```
 
+Redis 是選配；未設定時會沿用程序內快取：
+
+```env
+REDIS_URL=redis://localhost:6379/0
+CACHE_NAMESPACE=roadmap:v1
+```
+
+Redis 連線暫時失敗時，後端會自動回退到程序內快取。
+
+開發時如需查看 TDX 與快取累計值，可另外啟用：
+
+```env
+ENABLE_SYSTEM_STATS=true
+```
+
+啟用後可由前端開發網址查詢 `/api/system/cache-stats`。此端點預設關閉，正式環境
+不應在沒有管理員驗證的情況下開啟；統計資料會在後端重啟後歸零。
+
 不要將 `.env` 或憑證提交至 Git。
 
 ## 安裝
@@ -99,7 +117,7 @@ FastAPI 文件：`http://127.0.0.1:8000/docs`
 - 單一 GIS 首頁
 - NLSC 底圖
 - TDX 道路事件與 Cluster
-- 地點搜尋、CCTV、VD 與 360 路口將依後續階段介接
+- 地點搜尋將依後續階段介接
 - AI 路線助理不在目前階段
 
 ## 資料來源

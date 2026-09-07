@@ -1,5 +1,6 @@
 import unittest
 
+from server.services.coordinated_ttl_cache import CoordinatedTtlCache
 from server.services.bike_service import BikeService, StationNotFoundError, merge_bike_data
 
 
@@ -68,6 +69,25 @@ class MergeBikeDataTests(unittest.TestCase):
 
 
 class BikeServiceTests(unittest.TestCase):
+    def test_reuses_an_injected_cache_across_service_instances(self):
+        class FakeClient:
+            def __init__(self):
+                self.calls = []
+
+            def fetch_bike_data(self, resource, scope):
+                self.calls.append((resource, scope))
+                return []
+
+        cache = CoordinatedTtlCache(clock=lambda: 1_000)
+        first_client = FakeClient()
+        second_client = FakeClient()
+
+        BikeService(first_client, cache=cache).get_city_bikes("高雄市")
+        BikeService(second_client, cache=cache).get_city_bikes("高雄市")
+
+        self.assertEqual(len(first_client.calls), 2)
+        self.assertEqual(second_client.calls, [])
+
     def test_fetches_and_merges_city_scoped_station_and_availability(self):
         class FakeClient:
             def __init__(self):

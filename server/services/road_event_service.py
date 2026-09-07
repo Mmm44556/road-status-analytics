@@ -1,11 +1,10 @@
 from __future__ import annotations
 
 import time
-from dataclasses import dataclass
-from threading import Lock
 from typing import Any, Callable
 
 from server.clients.tdx_client import TdxClient
+from server.services.coordinated_ttl_cache import CoordinatedTtlCache
 
 
 CITY_CODES = {
@@ -41,46 +40,40 @@ def normalize_city(city: str) -> str:
     raise UnsupportedCityError(f"Unsupported city: {city}")
 
 
-@dataclass(frozen=True)
-class CacheEntry:
-    expires_at: float
-    value: dict[str, Any]
-
-
 class RoadEventService:
     def __init__(
         self,
         client: TdxClient,
         *,
         ttl_seconds: int = 120,
+        stale_seconds: int = 300,
         clock: Callable[[], float] = time.time,
+        cache: CoordinatedTtlCache | None = None,
     ) -> None:
         self._client = client
         self._ttl_seconds = ttl_seconds
-        self._clock = clock
-        self._cache: dict[tuple[str, int], CacheEntry] = {}
-        self._lock = Lock()
+        self._stale_seconds = stale_seconds
+        self._cache = cache or CoordinatedTtlCache(clock=clock)
 
     def get_city_events(self, city: str, *, top: int) -> dict[str, Any]:
         city_code = normalize_city(city)
-        cache_key = (city_code, top)
-        now = self._clock()
-        # 短期快取降低 TDX 請求量與頁面等待時間。
-        with self._lock:
-            cached = self._cache.get(cache_key)
-            if cached and now < cached.expires_at:
-                return cached.value
+        cache_key = f"road-events:{city_code}:{top}"
 
-        preview = (
-            self._client.fetch_city_events(city_code, live=False, top=top)
-            if city_code in PREVIEW_EVENT_CITIES
-            else {"Events": []}
+        def load_events() -> dict[str, Any]:
+            preview = (
+                self._client.fetch_city_events(city_code, live=False, top=top)
+                if city_code in PREVIEW_EVENT_CITIES
+                else {"Events": []}
+            )
+            return {
+                "city": city_code,
+                "preview": preview,
+                "live": self._client.fetch_city_events(city_code, live=True, top=top),
+            }
+
+        return self._cache.get(
+            cache_key,
+            self._ttl_seconds,
+            self._stale_seconds,
+            load_events,
         )
-        value = {
-            "city": city_code,
-            "preview": preview,
-            "live": self._client.fetch_city_events(city_code, live=True, top=top),
-        }
-        with self._lock:
-            self._cache[cache_key] = CacheEntry(now + self._ttl_seconds, value)
-        return value
