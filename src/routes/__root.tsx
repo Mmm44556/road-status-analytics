@@ -22,7 +22,6 @@ export const Route = createRootRoute({
           </Box>
         </Box>
       </SnackbarProvider>
-      {/* <TanStackRouterDevtools /> */}
     </ThemeProvider>
   ),
 });
