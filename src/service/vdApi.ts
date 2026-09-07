@@ -1,4 +1,9 @@
-import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
+import {
+  useMutation,
+  useQueries,
+  useQuery,
+  useQueryClient,
+} from '@tanstack/react-query';
 import { z } from 'zod';
 
 const vdLinkSchema = z.object({
@@ -25,6 +30,19 @@ const vdsResponseSchema = z.object({
     city: z.string(),
     vds: z.array(vdSchema),
   }),
+});
+type VdsResponse = z.infer<typeof vdsResponseSchema>;
+
+const combineVdQueries = (
+  results: Array<{
+    data?: VdsResponse;
+    isError: boolean;
+    isFetching: boolean;
+  }>,
+) => ({
+  responses: results.flatMap((result) => (result.data ? [result.data] : [])),
+  isError: results.some((result) => result.isError),
+  isFetching: results.some((result) => result.isFetching),
 });
 
 const vdReadingResponseSchema = z.object({ data: vdSchema });
@@ -61,6 +79,14 @@ export function createVdQueryOptions(city: string, enabled: boolean) {
 /** 提供具快取與取消請求能力的 VD 查詢。 */
 export function useVds(city: string, enabled = true) {
   return useQuery(createVdQueryOptions(city, enabled));
+}
+
+/** 同時查詢路線經過的多個縣市。 */
+export function useVdsForCities(cities: string[], enabled = true) {
+  return useQueries({
+    queries: cities.map((city) => createVdQueryOptions(city, enabled)),
+    combine: combineVdQueries,
+  });
 }
 
 /** 驗證後端單一 VD 回應契約。 */

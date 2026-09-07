@@ -1,15 +1,20 @@
 import type Feature from 'ol/Feature';
+import FeatureClass from 'ol/Feature';
+import LineString from 'ol/geom/LineString';
 import type Point from 'ol/geom/Point';
+import PointClass from 'ol/geom/Point';
 import Polygon from 'ol/geom/Polygon';
 import VectorLayer from 'ol/layer/Vector';
 import Cluster from 'ol/source/Cluster';
-import type VectorSource from 'ol/source/Vector';
+import VectorSource from 'ol/source/Vector';
 import CircleStyle from 'ol/style/Circle';
 import Fill from 'ol/style/Fill';
 import Stroke from 'ol/style/Stroke';
 import Style from 'ol/style/Style';
 import Text from 'ol/style/Text';
+import { unByKey } from 'ol/Observable';
 import { typographyTokens } from '@/config/designTokens';
+import { createClusterExpansionCoordinates } from '@/service/map/shared/clusterExpansion';
 import { createConvexHull, type MapCoordinate } from '@/service/map/shared/clusterHull';
 import { getClusterLevel } from '@/service/map/shared/clusterLevel';
 
@@ -26,8 +31,17 @@ type CreateClusteredPointLayerOptions = {
 export type ClusteredPointLayer = {
   hullLayer: VectorLayer;
   dataLayer: VectorLayer;
+  expansionLegLayer: VectorLayer;
+  expansionDataLayer: VectorLayer;
   clusterSource: Cluster;
   setHoverFeature: (feature: Feature<Point> | undefined) => void;
+  expand: (
+    members: Feature<Point>[],
+    center: MapCoordinate,
+    resolution: number,
+  ) => void;
+  clearExpansion: () => void;
+  getExpandedMember: (feature: Feature | undefined) => Feature<Point> | undefined;
   dispose: () => void;
 };
 
@@ -97,15 +111,68 @@ export function createClusteredPointLayer({
     },
   });
 
+  const expansionLegSource = new VectorSource();
+  const expansionPointSource = new VectorSource();
+  const expansionLegLayer = new VectorLayer({
+    source: expansionLegSource,
+    style: new Style({
+      stroke: new Stroke({ color: hullStrokeColor, width: 1.5 }),
+    }),
+  });
+  const expansionDataLayer = new VectorLayer({
+    source: expansionPointSource,
+    style: (feature) => {
+      const member = feature.get('clusterMember') as Feature<Point> | undefined;
+      return member ? singleStyle(member) : undefined;
+    },
+  });
+
+  /** 清除目前圖層展開的 spiderfy 點位與連接線。 */
+  const clearExpansion = () => {
+    expansionLegSource.clear();
+    expansionPointSource.clear();
+  };
+  const sourceChangeKey = source.on('change', clearExpansion);
+
   return {
     hullLayer,
     dataLayer,
+    expansionLegLayer,
+    expansionDataLayer,
     clusterSource,
     setHoverFeature: (feature) => {
       if (feature === hoverFeature) return;
       hoverFeature = feature;
       hullLayer.changed();
     },
-    dispose: () => clusterSource.setSource(null),
+    expand: (members, center, resolution) => {
+      clearExpansion();
+      const coordinates = createClusterExpansionCoordinates(
+        members.length,
+        center,
+        resolution,
+      );
+      coordinates.forEach((coordinate, index) => {
+        expansionLegSource.addFeature(
+          new FeatureClass({
+            geometry: new LineString([center, coordinate]),
+          }),
+        );
+        expansionPointSource.addFeature(
+          new FeatureClass({
+            geometry: new PointClass(coordinate),
+            clusterMember: members[index],
+          }),
+        );
+      });
+    },
+    clearExpansion,
+    getExpandedMember: (feature) =>
+      feature?.get('clusterMember') as Feature<Point> | undefined,
+    dispose: () => {
+      clearExpansion();
+      unByKey(sourceChangeKey);
+      clusterSource.setSource(null);
+    },
   };
 }

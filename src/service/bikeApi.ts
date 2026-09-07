@@ -1,4 +1,4 @@
-import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
+import { useMutation, useQueries, useQuery, useQueryClient } from '@tanstack/react-query';
 import { z } from 'zod';
 
 const bikeStationSchema = z.object({
@@ -20,6 +20,19 @@ const bikesResponseSchema = z.object({
     city: z.string(),
     stations: z.array(bikeStationSchema),
   }),
+});
+type BikesResponse = z.infer<typeof bikesResponseSchema>;
+
+const combineBikeQueries = (
+  results: Array<{
+    data?: BikesResponse;
+    isError: boolean;
+    isFetching: boolean;
+  }>,
+) => ({
+  responses: results.flatMap((result) => (result.data ? [result.data] : [])),
+  isError: results.some((result) => result.isError),
+  isFetching: results.some((result) => result.isFetching),
 });
 
 const bikeStationResponseSchema = z.object({ data: bikeStationSchema });
@@ -55,6 +68,14 @@ export function createBikeQueryOptions(city: string, enabled: boolean) {
 /** 提供具快取與取消請求能力的 YouBike 查詢。 */
 export function useBikeStations(city: string, enabled = true) {
   return useQuery(createBikeQueryOptions(city, enabled));
+}
+
+/** 同時查詢路線經過縣市的 YouBike 站點。 */
+export function useBikeStationsForCities(cities: string[], enabled = true) {
+  return useQueries({
+    queries: cities.map((city) => createBikeQueryOptions(city, enabled)),
+    combine: combineBikeQueries,
+  });
 }
 
 /** 驗證後端單一 YouBike 站點回應契約。 */

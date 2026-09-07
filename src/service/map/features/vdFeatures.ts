@@ -3,6 +3,7 @@ import { isCoordinate } from '@/service/map/features/mapFeatures';
 
 export type VdMapPoint = {
   id: string;
+  city?: string;
   longitude: number;
   latitude: number;
   roadName: string;

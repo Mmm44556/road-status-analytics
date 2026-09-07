@@ -5,7 +5,11 @@ import Tooltip from '@mui/material/Tooltip';
 import Typography from '@mui/material/Typography';
 import CloseRoundedIcon from '@mui/icons-material/CloseRounded';
 import RefreshRoundedIcon from '@mui/icons-material/RefreshRounded';
-import { radiusTokens, shadowTokens, typographyTokens } from '@/config/designTokens';
+import {
+  radiusTokens,
+  shadowTokens,
+  typographyTokens,
+} from '@/config/designTokens';
 
 type MapPopupCardProps = {
   ariaLabel: string;

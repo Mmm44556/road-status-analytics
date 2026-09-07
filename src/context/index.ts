@@ -7,6 +7,11 @@ export const TrafficMapViewContext = createContext<{
   mapController: {
     attach: () => undefined,
     flyTo: () => undefined,
+    fitTaiwan: () => undefined,
+    fitCounty: () => undefined,
+  setUserLocation: () => undefined,
+  setSearchLocation: () => undefined,
     showGeometry: () => undefined,
+    hideGeometry: () => undefined,
   },
 });

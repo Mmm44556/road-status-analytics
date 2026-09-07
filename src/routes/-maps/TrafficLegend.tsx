@@ -14,10 +14,11 @@ export default function TrafficLegend() {
     <Paper
       aria-label="即時路況圖例"
       sx={{
-        maxWidth: '28rem',
+        maxWidth: { xs: 'none', md: '28rem' },
         position: 'absolute',
         zIndex: 7,
-        right: 16,
+        left: { xs: 12, md: 'auto' },
+        right: { xs: 12, md: 16 },
         bottom: { xs: 84, md: 20 },
         display: 'flex',
         alignItems: 'center',

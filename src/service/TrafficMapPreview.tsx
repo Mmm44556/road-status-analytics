@@ -1,4 +1,4 @@
-import { useEffect, useRef, useState } from 'react';
+import { useEffect, useMemo, useRef, useState } from 'react';
 import { createPortal } from 'react-dom';
 import Box from '@mui/material/Box';
 import Chip from '@mui/material/Chip';
@@ -13,27 +13,27 @@ import { useRoadEventLayer } from '@/service/map/layers/useRoadEventLayer';
 import { useLiveTrafficLayer } from '@/service/map/layers/useLiveTrafficLayer';
 import { useVdLayer } from '@/service/map/layers/useVdLayer';
 import { useBikeLayer } from '@/service/map/layers/useBikeLayer';
-import { useReloadBikeStation } from '@/service/bikeApi';
-import { useReloadVd } from '@/service/vdApi';
 import { useMetroLayer } from '@/service/map/layers/useMetroLayer';
-import { useReloadMetroStation } from '@/service/metroApi';
+import { useBusLayer } from '@/service/map/layers/useBusLayer';
 import { useParkingLotLayer } from '@/service/map/layers/useParkingLotLayer';
-import { useReloadParkingLot } from '@/service/parkingLotApi';
 import { useParkingSegmentLayer } from '@/service/map/layers/useParkingSegmentLayer';
-import { useReloadParkingSegment } from '@/service/parkingSegmentApi';
 import { useTrafficMap } from '@/service/map/useTrafficMap';
-import CctvPopupCard from '@/service/map/popups/CctvPopupCard';
-import RoadEventPopupCard from '@/service/map/popups/RoadEventPopupCard';
-import LiveTrafficPopupCard from '@/service/map/popups/LiveTrafficPopupCard';
-import VdPopupCard from '@/service/map/popups/VdPopupCard';
-import BikePopupCard from '@/service/map/popups/BikePopupCard';
-import MetroPopupCard from '@/service/map/popups/MetroPopupCard';
-import ParkingLotPopupCard from '@/service/map/popups/ParkingLotPopupCard';
-import ParkingSegmentPopupCard from '@/service/map/popups/ParkingSegmentPopupCard';
+import SelectedFeaturePopup from '@/service/map/popups/SelectedFeaturePopup';
+import { getLayerStatuses } from '@/service/map/layerErrors';
+import { useSelectedFeatureRefresh } from '@/service/map/selectedFeatureRefresh';
+import { useLayerStatusSnackbars } from '@/service/map/useLayerStatusSnackbars';
+import type { CountySelection } from '@/service/map/features/countyBoundaries';
+import type { TownshipSelection } from '@/service/map/features/townshipBoundaries';
+import { DEFAULT_BASEMAP_ID, type BasemapId } from '@/data/basemapCatalog';
+import type { RouteResult } from '@/service/routeApi';
+import {
+  analyzeRouteEvents,
+  type RouteEventAnalysisState,
+} from '@/service/map/features/routeEventAnalysis';
 
 type TrafficMapPreviewProps = {
   height?: number | string | Record<string, number | string>;
-  city?: string;
+  city?: string | null;
   showLocateControl?: boolean;
   showEventCount?: boolean;
   showRoadEvents?: boolean;
@@ -42,14 +42,29 @@ type TrafficMapPreviewProps = {
   showVehicleDetectors?: boolean;
   showBikeShare?: boolean;
   showMetro?: boolean;
+  showBus?: boolean;
   showParkingLots?: boolean;
   showParkingSegments?: boolean;
+  showBoundaryMask?: boolean;
+  showAdministrativeBoundaries?: boolean;
+  basemapId?: BasemapId;
+  isSelectingCounty?: boolean;
+  selectedCountyId?: string | null;
+  onSelectCounty?: (county: CountySelection) => void;
+  isSelectingTownship?: boolean;
+  selectedTownshipId?: string | null;
+  onSelectTownship?: (township: TownshipSelection) => void;
+  /** 含 geometry 的完整鄉鎮選取，用於交通圖層的前端空間篩選；只有 id 用於地圖高亮的用 selectedTownshipId。 */
+  selectedTownship?: TownshipSelection | null;
+  route?: RouteResult | null;
+  routeCities?: string[];
+  onRouteAnalysisChange?: (state: RouteEventAnalysisState) => void;
 };
 
 /** 顯示具事件 cluster、點位 popup 與定位能力的 OpenLayers 地圖。 */
 export default function TrafficMapPreview({
   height = { xs: 440, md: 620 },
-  city = '臺中市',
+  city = null,
   showLocateControl = true,
   showEventCount = true,
   showRoadEvents = true,
@@ -58,8 +73,22 @@ export default function TrafficMapPreview({
   showVehicleDetectors = false,
   showBikeShare = false,
   showMetro = false,
+  showBus = false,
   showParkingLots = false,
   showParkingSegments = false,
+  showBoundaryMask = true,
+  showAdministrativeBoundaries = true,
+  basemapId = DEFAULT_BASEMAP_ID,
+  isSelectingCounty = false,
+  selectedCountyId = null,
+  onSelectCounty = () => undefined,
+  isSelectingTownship = false,
+  selectedTownshipId = null,
+  onSelectTownship = () => undefined,
+  selectedTownship = null,
+  route = null,
+  routeCities = [],
+  onRouteAnalysisChange = () => undefined,
 }: TrafficMapPreviewProps) {
   const mapContainer = useRef<HTMLDivElement>(null);
   // OpenLayers 的 Overlay 會把這個節點搬到地圖內部的 overlay container，
@@ -67,19 +96,69 @@ export default function TrafficMapPreview({
   // 的節點呼叫 insertBefore 而丟出 NotFoundError），所以用 portal 渲染內容。
   const [popupContainer] = useState(() => document.createElement('div'));
   const { mapController } = useTrafficMapContext();
-  const roadEventLayer = useRoadEventLayer(city, showRoadEvents);
-  const cctvLayer = useCctvLayer(city, showCctv);
-  const liveTrafficLayer = useLiveTrafficLayer(city, showLiveTraffic);
-  const vdLayer = useVdLayer(city, showVehicleDetectors);
-  const bikeLayer = useBikeLayer(city, showBikeShare);
-  const metroLayer = useMetroLayer(city, showMetro);
-  const parkingLotLayer = useParkingLotLayer(city, showParkingLots);
-  const parkingSegmentLayer = useParkingSegmentLayer(city, showParkingSegments);
-  const reloadBikeStation = useReloadBikeStation(city);
-  const reloadVd = useReloadVd(city);
-  const reloadMetroStation = useReloadMetroStation(city);
-  const reloadParkingLot = useReloadParkingLot(city);
-  const reloadParkingSegment = useReloadParkingSegment(city);
+  const roadEventLayer = useRoadEventLayer(
+    city,
+    showRoadEvents,
+    selectedTownship,
+    Boolean(route),
+    routeCities,
+    route?.geometry ?? null,
+  );
+  const cctvLayer = useCctvLayer(
+    city,
+    showCctv,
+    selectedTownship,
+    routeCities,
+    route?.geometry ?? null,
+  );
+  const liveTrafficLayer = useLiveTrafficLayer(
+    city,
+    showLiveTraffic,
+    selectedTownship,
+  );
+  const vdLayer = useVdLayer(
+    city,
+    showVehicleDetectors,
+    selectedTownship,
+    routeCities,
+    route?.geometry ?? null,
+  );
+  const bikeLayer = useBikeLayer(
+    city,
+    showBikeShare,
+    selectedTownship,
+    routeCities,
+  );
+  const metroLayer = useMetroLayer(
+    city,
+    showMetro,
+    selectedTownship,
+    routeCities,
+  );
+  const busLayer = useBusLayer(city, showBus, selectedTownship, routeCities);
+  const parkingLotLayer = useParkingLotLayer(
+    city,
+    showParkingLots,
+    selectedTownship,
+  );
+  const parkingSegmentLayer = useParkingSegmentLayer(
+    city,
+    showParkingSegments,
+    selectedTownship,
+  );
+  const routeAnalysis = useMemo(() => {
+    if (!route || route.travelMode !== 'drive') return { status: 'idle' } as const;
+    if (roadEventLayer.isLoading) return { status: 'loading' } as const;
+    if (roadEventLayer.isError) return { status: 'error' } as const;
+    return {
+      status: 'ready',
+      analysis: analyzeRouteEvents(route.geometry, roadEventLayer.allPoints),
+    } as const;
+  }, [route, roadEventLayer.allPoints, roadEventLayer.isError, roadEventLayer.isLoading]);
+
+  useEffect(() => {
+    onRouteAnalysisChange(routeAnalysis);
+  }, [onRouteAnalysisChange, routeAnalysis]);
   const { isLoading, selectedFeature, closePopup } = useTrafficMap({
     mapContainer,
     popupContainer,
@@ -90,6 +169,7 @@ export default function TrafficMapPreview({
     vdLayer,
     bikeLayer,
     metroLayer,
+    busLayer,
     parkingLotLayer,
     parkingSegmentLayer,
     showRoadEvents,
@@ -98,56 +178,63 @@ export default function TrafficMapPreview({
     showVehicleDetectors,
     showBikeShare,
     showMetro,
+    showBus,
     showParkingLots,
     showParkingSegments,
+    showBoundaryMask,
+    showAdministrativeBoundaries,
+    basemapId,
+    isSelectingCounty,
+    selectedCountyId,
+    onSelectCounty,
+    isSelectingTownship,
+    selectedTownshipId,
+    onSelectTownship,
+    route,
   });
 
-  // 打開 YouBike popup 的當下順便刷新該站，不做成持續輪詢。
-  // 依賴只放 id（原始值），不是整個 selectedFeature：reload 成功後
-  // useTrafficMap 會把 selectedFeature.data 換成新物件（同 id），若依賴整個物件，
-  // 物件參照一變就會被視為「又選了一個點」，變成開一次 popup 觸發無限次刷新。
-  const selectedBikeId = selectedFeature?.kind === 'bike' ? selectedFeature.data.id : null;
-  useEffect(() => {
-    if (selectedBikeId) reloadBikeStation.mutate(selectedBikeId);
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [selectedBikeId]);
+  const selectedFeatureRefresh = useSelectedFeatureRefresh(
+    city,
+    selectedFeature,
+  );
+  const layerStatuses = getLayerStatuses(
+    {
+      roadEvents: showRoadEvents && roadEventLayer.isError,
+      cctv: showCctv && cctvLayer.isError,
+      liveTraffic: showLiveTraffic && liveTrafficLayer.isError,
+      vehicleDetectors: showVehicleDetectors && vdLayer.isError,
+      bikeShare: showBikeShare && bikeLayer.isError,
+      metro: showMetro && metroLayer.isError,
+      bus: showBus && busLayer.isError,
+      parkingLots: showParkingLots && parkingLotLayer.isError,
+      parkingSegments: showParkingSegments && parkingSegmentLayer.isError,
+    },
+    {
+      roadEvents: roadEventLayer.isLoading,
+      cctv: cctvLayer.isLoading,
+      liveTraffic: liveTrafficLayer.isLoading,
+      vehicleDetectors: vdLayer.isLoading,
+      bikeShare: bikeLayer.isLoading,
+      metro: metroLayer.isLoading,
+      bus: busLayer.isLoading,
+      parkingLots: parkingLotLayer.isLoading,
+      parkingSegments: parkingSegmentLayer.isLoading,
+    },
+  );
+  useLayerStatusSnackbars(layerStatuses);
 
-  // 開 VD popup 的當下順便刷新該點，理由與依賴設計同 YouBike。
-  const selectedVdId = selectedFeature?.kind === 'vd' ? selectedFeature.data.id : null;
-  useEffect(() => {
-    if (selectedVdId) reloadVd.mutate(selectedVdId);
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [selectedVdId]);
-
-  // 開捷運／輕軌 popup 的當下順便刷新該站，理由與依賴設計同 YouBike／VD。
-  const selectedMetroId = selectedFeature?.kind === 'metro' ? selectedFeature.data.id : null;
-  useEffect(() => {
-    if (selectedMetroId) reloadMetroStation.mutate(selectedMetroId);
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [selectedMetroId]);
-
-  // 開戶外停車場 popup 的當下順便刷新該站，理由與依賴設計同 YouBike／VD／捷運。
-  const selectedParkingLotId =
-    selectedFeature?.kind === 'parkingLot' ? selectedFeature.data.id : null;
-  useEffect(() => {
-    if (selectedParkingLotId) reloadParkingLot.mutate(selectedParkingLotId);
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [selectedParkingLotId]);
-
-  // 開路邊停車格 popup 的當下順便刷新該路段，理由與依賴設計同其他點位圖層。
-  const selectedParkingSegmentId =
-    selectedFeature?.kind === 'parkingSegment' ? selectedFeature.data.id : null;
-  useEffect(() => {
-    if (selectedParkingSegmentId) reloadParkingSegment.mutate(selectedParkingSegmentId);
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [selectedParkingSegmentId]);
-
-  // TODO: 圖層讀取失敗／定位失敗的錯誤提示 UI 待重新設計，目前先不顯示。
+  // 頁面工具列已有定位錯誤提示；此控制僅供獨立使用地圖元件時啟用。
   const locateUser = () => {
     if (!navigator.geolocation) return;
     navigator.geolocation.getCurrentPosition(
-      ({ coords }) =>
-        mapController.flyTo([coords.longitude, coords.latitude], 15),
+      ({ coords }) => {
+        const coordinate: [number, number] = [
+          coords.longitude,
+          coords.latitude,
+        ];
+        mapController.setUserLocation(coordinate);
+        mapController.flyTo(coordinate, 15);
+      },
       () => undefined,
       { enableHighAccuracy: true, timeout: 8000 },
     );
@@ -160,7 +247,7 @@ export default function TrafficMapPreview({
         height,
         width: '100%',
         overflow: 'hidden',
-        bgcolor: '#DCE8E5',
+        bgcolor: 'background.default',
       }}
     >
       <Box
@@ -170,7 +257,25 @@ export default function TrafficMapPreview({
           inset: 0,
           '& .ol-zoom': { top: 1, left: 1 },
           '& .ol-attribution': {
+            right: 1.5,
+            bottom: 1.5,
+            maxWidth: 'calc(100% - 24px)',
             fontSize: typographyTokens.fontSize.metadata,
+          },
+          '& .ol-scale-line': {
+            right: 1.5,
+            bottom: { xs: 8, sm: 28 },
+            left: 'auto',
+            borderRadius: 0,
+            bgcolor: 'rgba(255, 255, 255, 0.9)',
+            backdropFilter: 'blur(6px)',
+            opacity: 0.75,
+          },
+          '& .ol-scale-line-inner': {
+            fontSize: typographyTokens.fontSize.metadata,
+            fontWeight: 600,
+            color: 'text.primary',
+            borderColor: 'text.primary',
           },
         }}
         aria-label="臺灣即時路況地圖"
@@ -184,7 +289,7 @@ export default function TrafficMapPreview({
             inset: 0,
             display: 'grid',
             placeItems: 'center',
-            bgcolor: 'rgba(242,245,244,.76)',
+            bgcolor: 'rgba(243,247,250,.78)',
             zIndex: 2,
           }}
         >
@@ -211,105 +316,11 @@ export default function TrafficMapPreview({
         </IconButton>
       )}
       {createPortal(
-        <>
-          {selectedFeature?.kind === 'event' && (
-            <RoadEventPopupCard
-              event={selectedFeature.data}
-              onClose={closePopup}
-            />
-          )}
-          {selectedFeature?.kind === 'cctv' && (
-            <CctvPopupCard
-              key={selectedFeature.data.id}
-              cctv={selectedFeature.data}
-              onClose={closePopup}
-            />
-          )}
-          {selectedFeature?.kind === 'liveTraffic' && (
-            <LiveTrafficPopupCard
-              segment={selectedFeature.data}
-              onClose={closePopup}
-            />
-          )}
-          {selectedFeature?.kind === 'vd' && (
-            <VdPopupCard
-              key={selectedFeature.data.id}
-              vd={selectedFeature.data}
-              onClose={closePopup}
-              onReload={() => reloadVd.mutate(selectedFeature.data.id)}
-              isReloading={
-                reloadVd.isPending && reloadVd.variables === selectedFeature.data.id
-              }
-              reloadFailed={
-                reloadVd.isError && reloadVd.variables === selectedFeature.data.id
-              }
-            />
-          )}
-          {selectedFeature?.kind === 'bike' && (
-            <BikePopupCard
-              key={selectedFeature.data.id}
-              bike={selectedFeature.data}
-              onClose={closePopup}
-              onReload={() => reloadBikeStation.mutate(selectedFeature.data.id)}
-              isReloading={
-                reloadBikeStation.isPending &&
-                reloadBikeStation.variables === selectedFeature.data.id
-              }
-              reloadFailed={
-                reloadBikeStation.isError &&
-                reloadBikeStation.variables === selectedFeature.data.id
-              }
-            />
-          )}
-          {selectedFeature?.kind === 'metro' && (
-            <MetroPopupCard
-              key={selectedFeature.data.id}
-              metro={selectedFeature.data}
-              onClose={closePopup}
-              onReload={() => reloadMetroStation.mutate(selectedFeature.data.id)}
-              isReloading={
-                reloadMetroStation.isPending &&
-                reloadMetroStation.variables === selectedFeature.data.id
-              }
-              reloadFailed={
-                reloadMetroStation.isError &&
-                reloadMetroStation.variables === selectedFeature.data.id
-              }
-            />
-          )}
-          {selectedFeature?.kind === 'parkingLot' && (
-            <ParkingLotPopupCard
-              key={selectedFeature.data.id}
-              parkingLot={selectedFeature.data}
-              onClose={closePopup}
-              onReload={() => reloadParkingLot.mutate(selectedFeature.data.id)}
-              isReloading={
-                reloadParkingLot.isPending &&
-                reloadParkingLot.variables === selectedFeature.data.id
-              }
-              reloadFailed={
-                reloadParkingLot.isError &&
-                reloadParkingLot.variables === selectedFeature.data.id
-              }
-            />
-          )}
-          {selectedFeature?.kind === 'parkingSegment' && (
-            <ParkingSegmentPopupCard
-              key={selectedFeature.data.id}
-              parkingSegment={selectedFeature.data}
-              onClose={closePopup}
-              onReload={() => reloadParkingSegment.mutate(selectedFeature.data.id)}
-              isReloading={
-                reloadParkingSegment.isPending &&
-                reloadParkingSegment.variables === selectedFeature.data.id
-              }
-              reloadFailed={
-                reloadParkingSegment.isError &&
-                reloadParkingSegment.variables === selectedFeature.data.id
-              }
-            />
-          )}
-        </>,
+        <SelectedFeaturePopup
+          selectedFeature={selectedFeature}
+          refresh={selectedFeatureRefresh}
+          onClose={closePopup}
+        />,
         popupContainer,
       )}
       {showEventCount && (
@@ -322,7 +333,7 @@ export default function TrafficMapPreview({
             right: 12,
             bottom: 28,
             zIndex: 3,
-            bgcolor: 'rgba(16,47,58,.9)',
+            bgcolor: 'rgba(6,43,91,.92)',
             color: '#FFFFFF',
             fontSize: typographyTokens.fontSize.metadata,
           }}

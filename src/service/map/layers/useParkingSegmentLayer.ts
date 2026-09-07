@@ -5,15 +5,24 @@ import VectorSource from 'ol/source/Vector';
 import { fromLonLat } from 'ol/proj';
 import { useParkingSegments } from '@/service/parkingSegmentApi';
 import { parkingSegmentsToMapPoints } from '@/service/map/features/parkingSegmentFeatures';
+import { isPointInsideTownship } from '@/service/map/features/administrativeSpatialFilter';
+import type { TownshipSelection } from '@/service/map/features/townshipBoundaries';
 
 /** 抓取路邊停車格路段、轉成地圖點位，並同步進專屬的 VectorSource。 */
-export function useParkingSegmentLayer(city: string, visible: boolean) {
+export function useParkingSegmentLayer(
+  city: string | null,
+  visible: boolean,
+  selectedTownship: TownshipSelection | null = null,
+) {
   const sourceRef = useRef(new VectorSource());
-  const { data, isError } = useParkingSegments(city, visible);
-  const points = useMemo(
-    () => parkingSegmentsToMapPoints(data?.data.segments ?? []),
-    [data],
-  );
+  const queryEnabled = Boolean(city) && visible;
+  const { data, isError, isFetching } = useParkingSegments(city ?? '', queryEnabled);
+  const points = useMemo(() => {
+    const all = parkingSegmentsToMapPoints(data?.data.segments ?? []);
+    return selectedTownship
+      ? all.filter((segment) => isPointInsideTownship(segment, selectedTownship))
+      : all;
+  }, [data, selectedTownship]);
 
   useEffect(() => {
     // TDX 使用經緯度，加入地圖前轉為 Web Mercator 座標。
@@ -31,5 +40,10 @@ export function useParkingSegmentLayer(city: string, visible: boolean) {
     sourceRef.current.addFeatures(features);
   }, [points, visible]);
 
-  return { sourceRef, points, isError: visible && isError };
+  return {
+    sourceRef,
+    points,
+    isError: queryEnabled && isError,
+    isLoading: queryEnabled && isFetching,
+  };
 }

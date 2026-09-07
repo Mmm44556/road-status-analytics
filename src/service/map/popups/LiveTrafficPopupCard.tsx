@@ -21,14 +21,20 @@ export default function LiveTrafficPopupCard({
   const congestion = getCongestionPresentation(segment.congestionLevel);
   const sourceLabel =
     segment.source === 'Freeway'
-      ? 'TDX 國道'
+      ? '國道'
       : segment.source === 'Highway'
-        ? 'TDX 省道'
-        : 'TDX 市區道路（VD 車速推估）';
+        ? '省道'
+        : '市區道路（VD 車速推估）';
   const rows: [string, string][] = [
     ['壅塞程度', congestion.label],
-    ['平均速度', segment.travelSpeed == null ? '未提供' : `${segment.travelSpeed} km/h`],
-    ['旅行時間', segment.travelTime == null ? '未提供' : `${segment.travelTime} 秒`],
+    [
+      '平均速度',
+      segment.travelSpeed == null ? '未提供' : `${segment.travelSpeed} km/h`,
+    ],
+    [
+      '旅行時間',
+      segment.travelTime == null ? '未提供' : `${segment.travelTime} 秒`,
+    ],
     ['行車方向', getRoadDirectionLabel(segment.roadDirection)],
     ['資料來源', sourceLabel],
     ['更新時間', formatDateTime(segment.dataCollectTime)],
@@ -64,7 +70,9 @@ export default function LiveTrafficPopupCard({
         <TableBody>
           {rows.map(([label, value], index) => (
             <TableRow key={label}>
-              <TableCell component="th" scope="row">{label}</TableCell>
+              <TableCell component="th" scope="row">
+                {label}
+              </TableCell>
               <TableCell>
                 {index === 0 && (
                   <Box

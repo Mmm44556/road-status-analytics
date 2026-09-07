@@ -3,17 +3,33 @@ import Feature from 'ol/Feature';
 import Point from 'ol/geom/Point';
 import VectorSource from 'ol/source/Vector';
 import { fromLonLat } from 'ol/proj';
-import { useMetroStations } from '@/service/metroApi';
+import { useMetroStationsForCities } from '@/service/metroApi';
 import { metroStationsToMapPoints } from '@/service/map/features/metroFeatures';
+import { isPointInsideTownship } from '@/service/map/features/administrativeSpatialFilter';
+import type { TownshipSelection } from '@/service/map/features/townshipBoundaries';
 
 /** 抓取捷運／輕軌站點、轉成地圖點位，並同步進專屬的 VectorSource。 */
-export function useMetroLayer(city: string, visible: boolean) {
+export function useMetroLayer(
+  city: string | null,
+  visible: boolean,
+  selectedTownship: TownshipSelection | null = null,
+  routeCities: string[] = [],
+) {
   const sourceRef = useRef(new VectorSource());
-  const { data, isError } = useMetroStations(city, visible);
-  const points = useMemo(
-    () => metroStationsToMapPoints(data?.data.stations ?? []),
-    [data],
+  const queryCities = useMemo(
+    () => (routeCities.length > 0 ? routeCities : city ? [city] : []),
+    [city, routeCities],
   );
+  const queryEnabled = queryCities.length > 0 && visible;
+  const query = useMetroStationsForCities(queryCities, queryEnabled);
+  const points = useMemo(() => {
+    const all = metroStationsToMapPoints(
+      query.responses.flatMap((response) => response.data.stations),
+    );
+    return selectedTownship
+      ? all.filter((station) => isPointInsideTownship(station, selectedTownship))
+      : all;
+  }, [query.responses, selectedTownship]);
 
   useEffect(() => {
     // TDX 使用經緯度，加入地圖前轉為 Web Mercator 座標。
@@ -31,5 +47,10 @@ export function useMetroLayer(city: string, visible: boolean) {
     sourceRef.current.addFeatures(features);
   }, [points, visible]);
 
-  return { sourceRef, points, isError: visible && isError };
+  return {
+    sourceRef,
+    points,
+    isError: queryEnabled && query.isError,
+    isLoading: queryEnabled && query.isFetching,
+  };
 }

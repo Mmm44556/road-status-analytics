@@ -1,4 +1,4 @@
-import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
+import { useMutation, useQueries, useQuery, useQueryClient } from '@tanstack/react-query';
 import { z } from 'zod';
 
 const nextTrainSchema = z.object({
@@ -21,6 +21,19 @@ const metroResponseSchema = z.object({
     city: z.string(),
     stations: z.array(metroStationSchema),
   }),
+});
+type MetroResponse = z.infer<typeof metroResponseSchema>;
+
+const combineMetroQueries = (
+  results: Array<{
+    data?: MetroResponse;
+    isError: boolean;
+    isFetching: boolean;
+  }>,
+) => ({
+  responses: results.flatMap((result) => (result.data ? [result.data] : [])),
+  isError: results.some((result) => result.isError),
+  isFetching: results.some((result) => result.isFetching),
 });
 
 const metroStationResponseSchema = z.object({ data: metroStationSchema });
@@ -57,6 +70,14 @@ export function createMetroQueryOptions(city: string, enabled: boolean) {
 /** 提供具快取與取消請求能力的捷運／輕軌查詢。 */
 export function useMetroStations(city: string, enabled = true) {
   return useQuery(createMetroQueryOptions(city, enabled));
+}
+
+/** 同時查詢路線經過縣市的捷運與輕軌站點。 */
+export function useMetroStationsForCities(cities: string[], enabled = true) {
+  return useQueries({
+    queries: cities.map((city) => createMetroQueryOptions(city, enabled)),
+    combine: combineMetroQueries,
+  });
 }
 
 /** 驗證後端單一捷運／輕軌站點回應契約。 */

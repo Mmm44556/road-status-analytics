@@ -1,4 +1,4 @@
-import { useQuery } from '@tanstack/react-query';
+import { useQueries, useQuery } from '@tanstack/react-query';
 import { z } from 'zod';
 
 const cctvSchema = z.object({
@@ -25,6 +25,19 @@ const cctvsSchema = z.object({
     city: z.string(),
     cctvs: z.array(cctvSchema),
   }),
+});
+type CctvsResponse = z.infer<typeof cctvsSchema>;
+
+const combineCctvQueries = (
+  results: Array<{
+    data?: CctvsResponse;
+    isError: boolean;
+    isFetching: boolean;
+  }>,
+) => ({
+  responses: results.flatMap((result) => (result.data ? [result.data] : [])),
+  isError: results.some((result) => result.isError),
+  isFetching: results.some((result) => result.isFetching),
 });
 
 export type Cctv = z.infer<typeof cctvSchema>;
@@ -73,4 +86,12 @@ export function createCctvQueryOptions(city: string, enabled: boolean) {
 /** 提供具快取與取消請求能力的 CCTV 查詢。 */
 export function useCctvCameras(city: string, enabled = true) {
   return useQuery(createCctvQueryOptions(city, enabled));
+}
+
+/** 同時查詢路線經過的多個縣市。 */
+export function useCctvCamerasForCities(cities: string[], enabled = true) {
+  return useQueries({
+    queries: cities.map((city) => createCctvQueryOptions(city, enabled)),
+    combine: combineCctvQueries,
+  });
 }

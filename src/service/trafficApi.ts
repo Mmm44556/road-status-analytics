@@ -1,4 +1,4 @@
-import { useQuery } from '@tanstack/react-query';
+import { useQueries, useQuery } from '@tanstack/react-query';
 import { z } from 'zod';
 
 const roadEventBaseSchema = z.object({
@@ -29,6 +29,19 @@ const roadEventsSchema = z.object({
     live: z.object({ LiveEvents: z.array(roadEventBaseSchema) }),
   }),
 });
+type RoadEventsResponse = z.infer<typeof roadEventsSchema>;
+
+const combineRoadEventQueries = (
+  results: Array<{
+    data?: RoadEventsResponse;
+    isError: boolean;
+    isFetching: boolean;
+  }>,
+) => ({
+  responses: results.flatMap((result) => (result.data ? [result.data] : [])),
+  isError: results.some((result) => result.isError),
+  isFetching: results.some((result) => result.isFetching),
+});
 
 export type PreviewRoadEvent = z.infer<typeof previewRoadEventSchema>;
 export type LiveRoadEvent = z.infer<typeof roadEventBaseSchema>;
@@ -56,11 +69,25 @@ export async function fetchRoadEvents(city: string, signal?: AbortSignal) {
   return parseRoadEvents(await response.json());
 }
 
-/** 提供具快取與取消請求能力的道路事件查詢。 */
-export function useRoadEvents(city: string) {
-  return useQuery({
+/** 建立道路事件查詢設定，圖層關閉或尚未選定行政區時不消耗 API 額度。 */
+export function createRoadEventQueryOptions(city: string, enabled: boolean) {
+  return {
     queryKey: ['traffic', 'road-events', city],
-    queryFn: ({ signal }) => fetchRoadEvents(city, signal),
+    queryFn: ({ signal }: { signal: AbortSignal }) => fetchRoadEvents(city, signal),
+    enabled,
     staleTime: 2 * 60 * 1000,
+  };
+}
+
+/** 提供具快取與取消請求能力的道路事件查詢。 */
+export function useRoadEvents(city: string, enabled = true) {
+  return useQuery(createRoadEventQueryOptions(city, enabled));
+}
+
+/** 同時查詢路線經過的多個縣市。 */
+export function useRoadEventsForCities(cities: string[], enabled = true) {
+  return useQueries({
+    queries: cities.map((city) => createRoadEventQueryOptions(city, enabled)),
+    combine: combineRoadEventQueries,
   });
 }

@@ -4,19 +4,54 @@ import Point from 'ol/geom/Point';
 import VectorSource from 'ol/source/Vector';
 import { fromLonLat } from 'ol/proj';
 import { roadEventsToMapPoints } from '@/service/map/features/mapFeatures';
-import { useRoadEvents } from '@/service/trafficApi';
+import { isPointInsideTownship } from '@/service/map/features/administrativeSpatialFilter';
+import type { TownshipSelection } from '@/service/map/features/townshipBoundaries';
+import { filterPointsNearRoute } from '@/service/map/features/routeEventAnalysis';
+import type { RouteResult } from '@/service/routeApi';
+import { useRoadEventsForCities } from '@/service/trafficApi';
 
 /** 抓取道路事件、轉成地圖點位，並同步進專屬的 VectorSource。 */
-export function useRoadEventLayer(city: string, visible: boolean) {
+export function useRoadEventLayer(
+  city: string | null,
+  visible: boolean,
+  selectedTownship: TownshipSelection | null = null,
+  analysisEnabled = false,
+  routeCities: string[] = [],
+  routeGeometry: RouteResult['geometry'] | null = null,
+) {
   const sourceRef = useRef(new VectorSource());
-  const { data, isError } = useRoadEvents(city);
+  const queryCities = useMemo(
+    () => (routeCities.length > 0 ? routeCities : city ? [city] : []),
+    [city, routeCities],
+  );
+  const queryEnabled = queryCities.length > 0 && (visible || analysisEnabled);
+  const query = useRoadEventsForCities(queryCities, queryEnabled);
+  const allPoints = useMemo(
+    () => {
+      const seen = new Set<string>();
+      return query.responses.flatMap((response) =>
+        roadEventsToMapPoints(
+          response.data.preview.Events,
+          response.data.live.LiveEvents,
+        ).filter((event) => {
+          if (seen.has(event.eventId)) return false;
+          seen.add(event.eventId);
+          return true;
+        }),
+      );
+    },
+    [query.responses],
+  );
   const points = useMemo(
-    () =>
-      roadEventsToMapPoints(
-        data?.data.preview.Events ?? [],
-        data?.data.live.LiveEvents ?? [],
-      ),
-    [data],
+    () => {
+      if (routeGeometry) return filterPointsNearRoute(routeGeometry, allPoints);
+      return selectedTownship
+        ? allPoints.filter((event) =>
+            isPointInsideTownship(event, selectedTownship),
+          )
+        : allPoints;
+    },
+    [allPoints, routeGeometry, selectedTownship],
   );
 
   useEffect(() => {
@@ -35,5 +70,11 @@ export function useRoadEventLayer(city: string, visible: boolean) {
     sourceRef.current.addFeatures(features);
   }, [points, visible]);
 
-  return { sourceRef, points, isError };
+  return {
+    sourceRef,
+    allPoints,
+    points,
+    isError: queryEnabled && query.isError,
+    isLoading: queryEnabled && query.isFetching,
+  };
 }
