@@ -4,3 +4,5 @@ pydantic
 requests
 python-dotenv
 pytest
+redis>=5.0
+google-genai

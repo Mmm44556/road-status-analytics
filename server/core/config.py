@@ -12,6 +12,11 @@ class Settings:
     tdx_client_id: str
     tdx_client_secret: str
     allowed_origins: tuple[str, ...]
+    geoapify_api_key: str
+    gemini_api_key: str
+    redis_url: str
+    cache_namespace: str
+    enable_system_stats: bool
 
 
 @lru_cache
@@ -30,4 +35,11 @@ def get_settings() -> Settings:
         tdx_client_id=os.getenv("TDX_CLIENT_ID", "").strip(),
         tdx_client_secret=os.getenv("TDX_CLIENT_SECRET", "").strip(),
         allowed_origins=origins,
+        geoapify_api_key=os.getenv("GEOAPIFY_API_KEY", "").strip(),
+        gemini_api_key=os.getenv("GEMINI_API_KEY", "").strip(),
+        redis_url=os.getenv("REDIS_URL", "").strip(),
+        cache_namespace=os.getenv("CACHE_NAMESPACE", "roadmap:v1").strip()
+        or "roadmap:v1",
+        enable_system_stats=os.getenv("ENABLE_SYSTEM_STATS", "false").strip().lower()
+        in {"1", "true", "yes", "on"},
     )
