@@ -67,11 +67,7 @@ export function useLayerStatusSnackbars(statuses: LayerStatus[]) {
                 )}
               </Box>
             }
-            onClose={
-              status.type === 'error'
-                ? () => closeSnackbar(snackbarKey)
-                : undefined
-            }
+            onClose={() => closeSnackbar(snackbarKey)}
             sx={{
               width: '100%',
               minWidth: { xs: 280, sm: 340 },
