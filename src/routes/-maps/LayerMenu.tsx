@@ -6,6 +6,8 @@ import Button from '@mui/material/Button';
 import Checkbox from '@mui/material/Checkbox';
 import ClickAwayListener from '@mui/material/ClickAwayListener';
 import Divider from '@mui/material/Divider';
+import Drawer from '@mui/material/Drawer';
+import IconButton from '@mui/material/IconButton';
 import ListItemIcon from '@mui/material/ListItemIcon';
 import ListItemText from '@mui/material/ListItemText';
 import MenuList from '@mui/material/MenuList';
@@ -13,8 +15,13 @@ import MenuItem from '@mui/material/MenuItem';
 import Paper from '@mui/material/Paper';
 import Popper from '@mui/material/Popper';
 import Radio from '@mui/material/Radio';
+import Stack from '@mui/material/Stack';
 import Tooltip from '@mui/material/Tooltip';
 import Typography from '@mui/material/Typography';
+import useMediaQuery from '@mui/material/useMediaQuery';
+import { useTheme } from '@mui/material/styles';
+import ArrowBackRoundedIcon from '@mui/icons-material/ArrowBackRounded';
+import ChevronRightRoundedIcon from '@mui/icons-material/ChevronRightRounded';
 import DirectionsTransitRoundedIcon from '@mui/icons-material/DirectionsTransitRounded';
 import LayersRoundedIcon from '@mui/icons-material/LayersRounded';
 import LocalParkingRoundedIcon from '@mui/icons-material/LocalParkingRounded';
@@ -100,9 +107,17 @@ export default function LayerMenu({
   basemapId,
   onChangeBasemap,
 }: LayerMenuProps) {
+  const theme = useTheme();
+  // 手機版沒有 preventOverflow／flip modifier 的 Popper 貼著螢幕邊緣容易被裁切，
+  // 改用從底部滑出的 Drawer（滿版寬度、貼底部，不會有錨點定位溢出的問題）；
+  // 桌面版維持原本的 Popper。
+  const isDesktop = useMediaQuery(theme.breakpoints.up('md'));
   const [portalTarget, setPortalTarget] = useState<HTMLElement | null>(null);
   const [menuAnchor, setMenuAnchor] = useState<HTMLElement | null>(null);
   const [activeMenu, setActiveMenu] = useState<HeaderMenuId>('traffic');
+  // 手機版收斂成單一「圖層」按鈕，開啟後先顯示這份分類清單當子選項，
+  // 選了某個分類才切換成該分類原本的內容；桌面版的 5 個按鈕不會用到這個狀態。
+  const [showCategoryPicker, setShowCategoryPicker] = useState(false);
 
   useEffect(() => {
     setPortalTarget(document.getElementById('header-layer-controls'));
@@ -160,15 +175,203 @@ export default function LayerMenu({
   const activeGroup = trafficLayerGroups.find(
     (group) => group.id === activeMenu,
   );
+  const totalActiveLayerCount = menuDefinitions.reduce(
+    (sum, definition) => sum + definition.count,
+    0,
+  );
 
   const openMenu = (menuId: HeaderMenuId, anchor: HTMLElement) => {
-    if (menuAnchor && activeMenu === menuId) {
+    if (menuAnchor && activeMenu === menuId && !showCategoryPicker) {
       setMenuAnchor(null);
       return;
     }
     setActiveMenu(menuId);
+    setShowCategoryPicker(false);
     setMenuAnchor(anchor);
   };
+
+  /** 手機版單一按鈕：開啟時一律先回到分類清單，再點一次同一顆按鈕則關閉。 */
+  const openMobileMenu = (anchor: HTMLElement) => {
+    if (menuAnchor === anchor) {
+      setMenuAnchor(null);
+      return;
+    }
+    setShowCategoryPicker(true);
+    setMenuAnchor(anchor);
+  };
+
+  /** Popper（桌面）與 Drawer（手機）共用同一份內容，只有外殼容器不同。 */
+  const menuBody = (
+    <>
+      <Box
+        sx={{
+          px: 2,
+          py: 1,
+          display: 'flex',
+          alignItems: 'center',
+          gap: 0.5,
+        }}
+      >
+        {!showCategoryPicker && (
+          <IconButton
+            size="small"
+            aria-label="返回圖層分類"
+            onClick={() => setShowCategoryPicker(true)}
+            sx={{ display: { xs: 'inline-flex', md: 'none' }, mr: 0.5 }}
+          >
+            <ArrowBackRoundedIcon fontSize="small" />
+          </IconButton>
+        )}
+        <Box>
+          <Typography variant="subtitle2" fontWeight={800}>
+            {showCategoryPicker ? '圖層' : activeDefinition.label}
+          </Typography>
+          <Typography variant="caption" color="text.secondary">
+            {showCategoryPicker
+              ? '選擇要開啟的圖層分類'
+              : '選取後選單會保持開啟'}
+          </Typography>
+        </Box>
+      </Box>
+      {showCategoryPicker ? (
+        <MenuList
+          dense
+          aria-label="圖層分類"
+          onKeyDown={(event) => {
+            if (event.key !== 'Escape') return;
+            closeMenu();
+            menuAnchor?.focus();
+          }}
+        >
+          {menuDefinitions.map((definition) => (
+            <MenuItem
+              key={definition.id}
+              onClick={() => {
+                setActiveMenu(definition.id);
+                setShowCategoryPicker(false);
+              }}
+            >
+              <ListItemIcon>{definition.icon}</ListItemIcon>
+              <ListItemText primary={definition.label} />
+              <Stack direction="row" alignItems="center" spacing={0.5}>
+                {definition.count > 0 && (
+                  <Typography variant="caption" color="text.secondary">
+                    {definition.count}
+                  </Typography>
+                )}
+                <ChevronRightRoundedIcon
+                  fontSize="small"
+                  sx={{ color: 'text.disabled' }}
+                />
+              </Stack>
+            </MenuItem>
+          ))}
+        </MenuList>
+      ) : (
+        <>
+          <MenuList
+            dense
+            aria-label={`${activeDefinition.label}選單`}
+            onKeyDown={(event) => {
+              if (event.key !== 'Escape') return;
+              closeMenu();
+              menuAnchor?.focus();
+            }}
+          >
+            {activeGroup?.layerIds.map((layerId) => {
+              const layer = trafficLayerCatalog.find(
+                (item) => item.id === layerId,
+              )!;
+              const disabled =
+                !canToggleLayer(layer.id) || layer.availability !== 'available';
+              return (
+                <SelectableItem
+                  key={layer.id}
+                  checked={visibleLayers.has(layer.id)}
+                  disabled={disabled}
+                  icon={
+                    <layer.icon fontSize="small" sx={{ color: layer.color }} />
+                  }
+                  label={layer.label}
+                  secondary={
+                    !canToggleLayer(layer.id)
+                      ? '目前查詢模式無法使用'
+                      : layer.description
+                  }
+                  onClick={() => onToggle(layer.id)}
+                />
+              );
+            })}
+
+            {activeMenu === 'basemap' &&
+              basemapCatalog.map((basemap) => (
+                <SelectableItem
+                  key={basemap.id}
+                  checked={basemap.id === basemapId}
+                  radio
+                  icon={<LayersRoundedIcon fontSize="small" color="action" />}
+                  label={basemap.label}
+                  onClick={() => onChangeBasemap(basemap.id)}
+                />
+              ))}
+
+            {activeMenu === 'settings' && (
+              <>
+                <SelectableItem
+                  checked={showBoundaryMask}
+                  icon={<MapRoundedIcon fontSize="small" color="action" />}
+                  label="臺灣範圍遮罩"
+                  secondary="顯示臺灣範圍外的灰色遮罩"
+                  onClick={onToggleBoundaryMask}
+                />
+                <SelectableItem
+                  checked={showAdministrativeBoundaries}
+                  icon={<LayersRoundedIcon fontSize="small" color="action" />}
+                  label="行政區選擇圖層"
+                  secondary="僅切換顯示，不會跳過選擇流程"
+                  onClick={onToggleAdministrativeBoundaries}
+                />
+              </>
+            )}
+          </MenuList>
+          {activeMenu === 'settings' && (
+            <>
+              <Divider />
+              <Box
+                component="section"
+                aria-labelledby="traffic-data-source-title"
+                sx={{ px: 2, py: 1.5 }}
+              >
+                <Typography
+                  id="traffic-data-source-title"
+                  variant="caption"
+                  fontWeight={700}
+                >
+                  資料來源
+                </Typography>
+                <Typography
+                  display="block"
+                  variant="caption"
+                  color="text.secondary"
+                  sx={{ mt: 0.5 }}
+                >
+                  交通資料：交通部 TDX 運輸資料流通服務
+                </Typography>
+                <Typography
+                  display="block"
+                  variant="caption"
+                  color="text.secondary"
+                  sx={{ mt: 0.5 }}
+                >
+                  資料可能存在延遲，實際交通狀況以現場為準。
+                </Typography>
+              </Box>
+            </>
+          )}
+        </>
+      )}
+    </>
+  );
 
   const closeMenu = () => {
     setMenuAnchor(null);
@@ -176,9 +379,10 @@ export default function LayerMenu({
 
   return createPortal(
     <>
+      {/* 桌面版：5 個分類各自一個按鈕，直接點進該分類。 */}
       <Box
         sx={{
-          display: 'flex',
+          display: { xs: 'none', md: 'flex' },
           alignItems: 'center',
           gap: 0.5,
           flexWrap: 'nowrap',
@@ -230,143 +434,82 @@ export default function LayerMenu({
           </Tooltip>
         ))}
       </Box>
-      <Popper
-        anchorEl={menuAnchor}
-        open={Boolean(menuAnchor)}
-        placement="bottom-end"
-        modifiers={[{ name: 'offset', options: { offset: [0, 8] } }]}
-        sx={{ zIndex: (theme) => theme.zIndex.tooltip }}
-      >
-        <ClickAwayListener
-          onClickAway={(event) => {
-            const target = event.target as Element;
-            if (target.closest('#header-layer-controls')) return;
-            closeMenu();
-          }}
+      {/* 手機版：收斂成單一「圖層」按鈕，開啟後先看到分類清單（子選項），點了才切換成該分類內容。 */}
+      <Tooltip title="圖層選單">
+        <Badge
+          badgeContent={totalActiveLayerCount}
+          color="secondary"
+          invisible={totalActiveLayerCount === 0}
+          sx={{ display: { xs: 'inline-flex', md: 'none' } }}
         >
-          <Paper
-            elevation={8}
+          <Button
+            color="inherit"
+            aria-haspopup="menu"
+            aria-label="圖層選單"
+            aria-expanded={Boolean(menuAnchor)}
+            onClick={(event) => openMobileMenu(event.currentTarget)}
             sx={{
-              width: 340,
-              maxWidth: 'calc(100vw - 24px)',
-              maxHeight: 'calc(100dvh - 80px)',
-              overflowY: 'auto',
-              borderRadius: radiusTokens.floating,
+              minWidth: 36,
+              px: 0.75,
+              borderRadius: radiusTokens.surface,
+              bgcolor: menuAnchor ? 'action.selected' : 'transparent',
+              '&:hover': { bgcolor: 'action.hover' },
+              fontSize: typographyTokens.fontSize.title,
             }}
           >
-            <Box sx={{ px: 2, py: 1 }}>
-              <Typography variant="subtitle2" fontWeight={800}>
-                {activeDefinition.label}
-              </Typography>
-              <Typography variant="caption" color="text.secondary">
-                選取後選單會保持開啟
-              </Typography>
-            </Box>
-            <MenuList
-              dense
-              aria-label={`${activeDefinition.label}選單`}
-              onKeyDown={(event) => {
-                if (event.key !== 'Escape') return;
-                closeMenu();
-                menuAnchor?.focus();
+            <LayersRoundedIcon />
+          </Button>
+        </Badge>
+      </Tooltip>
+      {isDesktop ? (
+        <Popper
+          anchorEl={menuAnchor}
+          open={Boolean(menuAnchor)}
+          placement="bottom-end"
+          modifiers={[{ name: 'offset', options: { offset: [0, 8] } }]}
+          sx={{ zIndex: (theme) => theme.zIndex.tooltip }}
+        >
+          <ClickAwayListener
+            onClickAway={(event) => {
+              const target = event.target as Element;
+              if (target.closest('#header-layer-controls')) return;
+              closeMenu();
+            }}
+          >
+            <Paper
+              elevation={8}
+              sx={{
+                width: 340,
+                maxWidth: 'calc(100vw - 24px)',
+                maxHeight: 'calc(100dvh - 80px)',
+                overflowY: 'auto',
+                borderRadius: radiusTokens.floating,
               }}
             >
-              {activeGroup?.layerIds.map((layerId) => {
-                const layer = trafficLayerCatalog.find(
-                  (item) => item.id === layerId,
-                )!;
-                const disabled =
-                  !canToggleLayer(layer.id) || layer.availability !== 'available';
-                return (
-                  <SelectableItem
-                    key={layer.id}
-                    checked={visibleLayers.has(layer.id)}
-                    disabled={disabled}
-                    icon={
-                      <layer.icon
-                        fontSize="small"
-                        sx={{ color: layer.color }}
-                      />
-                    }
-                    label={layer.label}
-                    secondary={
-                      !canToggleLayer(layer.id)
-                        ? '目前查詢模式無法使用'
-                        : layer.description
-                    }
-                    onClick={() => onToggle(layer.id)}
-                  />
-                );
-              })}
-
-              {activeMenu === 'basemap' &&
-                basemapCatalog.map((basemap) => (
-                  <SelectableItem
-                    key={basemap.id}
-                    checked={basemap.id === basemapId}
-                    radio
-                    icon={<LayersRoundedIcon fontSize="small" color="action" />}
-                    label={basemap.label}
-                    onClick={() => onChangeBasemap(basemap.id)}
-                  />
-                ))}
-
-              {activeMenu === 'settings' && (
-                <>
-                  <SelectableItem
-                    checked={showBoundaryMask}
-                    icon={<MapRoundedIcon fontSize="small" color="action" />}
-                    label="臺灣範圍遮罩"
-                    secondary="顯示臺灣範圍外的灰色遮罩"
-                    onClick={onToggleBoundaryMask}
-                  />
-                  <SelectableItem
-                    checked={showAdministrativeBoundaries}
-                    icon={<LayersRoundedIcon fontSize="small" color="action" />}
-                    label="行政區選擇圖層"
-                    secondary="僅切換顯示，不會跳過選擇流程"
-                    onClick={onToggleAdministrativeBoundaries}
-                  />
-                </>
-              )}
-            </MenuList>
-            {activeMenu === 'settings' && (
-              <>
-                <Divider />
-                <Box
-                  component="section"
-                  aria-labelledby="traffic-data-source-title"
-                  sx={{ px: 2, py: 1.5 }}
-                >
-                  <Typography
-                    id="traffic-data-source-title"
-                    variant="caption"
-                    fontWeight={700}
-                  >
-                    資料來源
-                  </Typography>
-                  <Typography
-                    display="block"
-                    variant="caption"
-                    color="text.secondary"
-                    sx={{ mt: 0.5 }}
-                  >
-                    交通資料：交通部 TDX 運輸資料流通服務
-                  </Typography>
-                  <Typography
-                    display="block"
-                    variant="caption"
-                    color="text.secondary"
-                    sx={{ mt: 0.5 }}
-                  >
-                    資料可能存在延遲，實際交通狀況以現場為準。
-                  </Typography>
-                </Box>
-              </>
-            )}
-          </Paper>
-        </ClickAwayListener>
-      </Popper>
+              {menuBody}
+            </Paper>
+          </ClickAwayListener>
+        </Popper>
+      ) : (
+        <Drawer
+          anchor="bottom"
+          open={Boolean(menuAnchor)}
+          onClose={closeMenu}
+          slotProps={{
+            paper: {
+              sx: {
+                borderTopLeftRadius: radiusTokens.floating,
+                borderTopRightRadius: radiusTokens.floating,
+                maxHeight: '80dvh',
+                overflowY: 'auto',
+                pb: 'env(safe-area-inset-bottom)',
+              },
+            },
+          }}
+        >
+          {menuBody}
+        </Drawer>
+      )}
     </>,
     portalTarget,
   );
