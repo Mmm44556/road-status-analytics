@@ -5,7 +5,6 @@ import IconButton from '@mui/material/IconButton';
 import Tooltip from '@mui/material/Tooltip';
 import { ChatName } from '@/config/appInfo';
 import { shadowTokens, tooltipSlots } from '@/config/designTokens';
-import logoMarkUrl from '@/assets/image/LogoMark.png';
 
 type AiChatFabProps = { isOpen: boolean; onToggle: () => void };
 
@@ -87,7 +86,7 @@ export default function AiChatFab({ isOpen, onToggle }: AiChatFabProps) {
       >
         <Box
           component="img"
-          src={logoMarkUrl}
+          src="/Logo-icon-bg.png"
           alt=""
           sx={{ width: '100%', height: '100%', objectFit: 'contain' }}
         />

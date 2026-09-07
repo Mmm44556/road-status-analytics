@@ -13,7 +13,6 @@ import CloseRoundedIcon from '@mui/icons-material/CloseRounded';
 import SendRoundedIcon from '@mui/icons-material/SendRounded';
 import StopRoundedIcon from '@mui/icons-material/StopRounded';
 import WarningAmberRoundedIcon from '@mui/icons-material/WarningAmberRounded';
-import logoMarkUrl from '@/assets/image/LogoMark.png';
 import { ChatName } from '@/config/appInfo';
 import {
   radiusTokens,
@@ -313,7 +312,7 @@ export default function AiRouteChatCard({
         <Stack direction="row" alignItems="center" spacing={1}>
           <Box
             component="img"
-            src={logoMarkUrl}
+            src="/Logo-icon-bg.png"
             alt=""
             sx={{ width: 28, height: 28, objectFit: 'contain' }}
           />

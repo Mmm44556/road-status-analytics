@@ -1,13 +1,146 @@
 <!doctype html>
-<html lang="en">
+<html lang="zh-Hant-TW">
   <head>
     <meta charset="UTF-8" />
-    <link rel="icon" type="image/svg+xml" href="/vite.svg" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>WebGIS</title>
+    <meta
+      name="description"
+      content="RouteSight 路況觀測站整合全臺即時路況、道路事件、CCTV、停車場、YouBike 與捷運資訊，透過互動地圖快速掌握各縣市交通狀況。"
+    />
+    <meta
+      name="keywords"
+      content="台灣即時路況,道路事件,CCTV,即時交通,停車場,YouBike,捷運,交通地圖,RouteSight"
+    />
+    <meta name="author" content="RouteSight" />
+    <meta name="robots" content="index, follow, max-image-preview:large" />
+    <meta name="theme-color" content="#ffffff" />
+
+    <meta property="og:locale" content="zh_TW" />
+    <meta property="og:type" content="website" />
+    <meta property="og:site_name" content="RouteSight 路況觀測站" />
+    <meta
+      property="og:title"
+      content="RouteSight 路況觀測站｜全臺即時交通地圖"
+    />
+    <meta
+      property="og:description"
+      content="在互動地圖查看全臺即時路況、道路事件、CCTV、停車、YouBike 與捷運資訊。"
+    />
+    <meta property="og:image" content="/og-routesight.png" />
+    <meta property="og:image:type" content="image/png" />
+    <meta property="og:image:width" content="1200" />
+    <meta property="og:image:height" content="630" />
+    <meta
+      property="og:image:alt"
+      content="RouteSight 全臺即時交通地圖，提供路況、道路事件、CCTV 與停車資訊"
+    />
+
+    <meta name="twitter:card" content="summary_large_image" />
+    <meta
+      name="twitter:title"
+      content="RouteSight 路況觀測站｜全臺即時交通地圖"
+    />
+    <meta
+      name="twitter:description"
+      content="在互動地圖查看全臺即時路況、道路事件、CCTV、停車、YouBike 與捷運資訊。"
+    />
+    <meta name="twitter:image" content="/og-routesight.png" />
+    <meta
+      name="twitter:image:alt"
+      content="RouteSight 全臺即時交通地圖，提供路況、道路事件、CCTV 與停車資訊"
+    />
+
+    <link rel="icon" type="image/png" sizes="32x32" href="/Logo-32x32.png" />
+    <link
+      rel="apple-touch-icon"
+      type="image/png"
+      sizes="32x32"
+      href="/Logo-32x32.png"
+    />
+    <link rel="manifest" href="/site.webmanifest" />
+    <title>RouteSight 路況觀測站｜全臺即時交通地圖</title>
+
+    <script type="application/ld+json">
+      {
+        "@context": "https://schema.org",
+        "@type": "WebApplication",
+        "name": "RouteSight 路況觀測站",
+        "alternateName": "RouteSight",
+        "description": "整合全臺即時路況、道路事件、CCTV、停車場、YouBike 與捷運資訊的互動交通地圖。",
+        "applicationCategory": "TravelApplication",
+        "operatingSystem": "Any",
+        "inLanguage": "zh-Hant-TW",
+        "isAccessibleForFree": true,
+        "offers": {
+          "@type": "Offer",
+          "price": 0,
+          "priceCurrency": "TWD"
+        }
+      }
+    </script>
+
+    <style>
+      body {
+        margin: 0;
+      }
+      .app-loading-shell {
+        min-height: 100dvh;
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        justify-content: center;
+        gap: 16px;
+        text-align: center;
+        background: #f3f7fa;
+        color: #062b5b;
+        font-family:
+          Inter,
+          system-ui,
+          -apple-system,
+          'Segoe UI',
+          sans-serif;
+      }
+      .app-loading-shell img {
+        width: 4rem;
+        object-fit: contain;
+        animation: app-loading-pulse 1.4s ease-in-out infinite;
+      }
+      .app-loading-shell h1 {
+        font-size: 1.1rem;
+        font-weight: 700;
+        margin: 0;
+      }
+      .app-loading-shell p {
+        margin: 0;
+        max-width: 360px;
+        font-size: 0.875rem;
+        color: #52697d;
+      }
+      @keyframes app-loading-pulse {
+        0%,
+        100% {
+          transform: scale(1);
+          opacity: 1;
+        }
+        50% {
+          transform: scale(1.08);
+          opacity: 0.75;
+        }
+      }
+    </style>
   </head>
   <body>
-    <div id="root"></div>
+    <div id="root">
+      <!-- React 掛載時會整個換掉這裡的內容，所以這段只會在 JS 執行前短暫出現。 -->
+      <main class="app-loading-shell">
+        <img src="/Logo-icon-bg.png" alt="" />
+        <h1>RouteSight 路況觀測站</h1>
+        <p>
+          透過互動地圖查詢全臺即時路況、道路事件、CCTV、停車場、YouBike
+          與捷運資訊，快速掌握各縣市交通狀況。
+        </p>
+      </main>
+    </div>
     <script type="module" src="/src/main.tsx"></script>
   </body>
 </html>
