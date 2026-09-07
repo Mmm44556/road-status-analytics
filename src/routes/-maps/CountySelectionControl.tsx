@@ -52,7 +52,7 @@ export default function CountySelectionControl({
       sx={{
         position: 'absolute',
         zIndex: 7,
-        top: { xs: 76, md: 24 },
+        top: { xs: 72, md: 24 },
         right: { sm: 16 },
         [theme.breakpoints.down('sm')]: {
           right: 'none',

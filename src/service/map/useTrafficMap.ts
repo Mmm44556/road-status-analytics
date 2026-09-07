@@ -362,12 +362,7 @@ export function useTrafficMap({
   const countyLayerRef = useRef<VectorLayer<VectorSource> | null>(null);
   const townshipSourceRef = useRef(new VectorSource());
   const townshipLayerRef = useRef<VectorLayer<VectorSource> | null>(null);
-  const routeSourceRef = useRef(
-    new VectorSource({
-      attributions:
-        '路線規劃：<a href="https://www.geoapify.com/" target="_blank" rel="noreferrer">Geoapify</a>',
-    }),
-  );
+  const routeSourceRef = useRef(new VectorSource({}));
   const countySelectionRef = useRef({
     isSelectingCounty,
     selectedCountyId,
@@ -624,10 +619,7 @@ export function useTrafficMap({
       source: userLocationSource,
       style: userLocationStyle,
     });
-    const searchLocationSource = new VectorSource({
-      attributions:
-        '地點搜尋：<a href="https://www.geoapify.com/" target="_blank" rel="noreferrer">Geoapify</a>',
-    });
+    const searchLocationSource = new VectorSource({});
     const searchLocationLayer = new VectorLayer({
       source: searchLocationSource,
       style: searchLocationStyle,
@@ -964,7 +956,9 @@ export function useTrafficMap({
         highlightSourceRef.current
           .getFeatures()
           .filter((feature) => feature.get('highlightGroupId') === id)
-          .forEach((feature) => highlightSourceRef.current.removeFeature(feature));
+          .forEach((feature) =>
+            highlightSourceRef.current.removeFeature(feature),
+          );
       },
       showGeometry: (geometry) => {
         if (highlightSourceRef.current.getFeatureById(geometry.id)) {
@@ -990,10 +984,14 @@ export function useTrafficMap({
             ? new Point(fromLonLat(geometry.coordinates))
             : geometry.type === 'polygon'
               ? new Polygon([
-                  geometry.coordinates.map((coordinate) => fromLonLat(coordinate)),
+                  geometry.coordinates.map((coordinate) =>
+                    fromLonLat(coordinate),
+                  ),
                 ])
               : new LineString(
-                  geometry.coordinates.map((coordinate) => fromLonLat(coordinate)),
+                  geometry.coordinates.map((coordinate) =>
+                    fromLonLat(coordinate),
+                  ),
                 );
         const feature = new Feature({ geometry: projected });
         feature.setId(geometry.id);
@@ -1018,7 +1016,10 @@ export function useTrafficMap({
                             placement: 'line',
                             repeat: 120,
                             fill: new Fill({ color: '#FFFFFF' }),
-                            stroke: new Stroke({ color: geometry.color, width: 3 }),
+                            stroke: new Stroke({
+                              color: geometry.color,
+                              width: 3,
+                            }),
                             font: '700 12px "Noto Sans TC", sans-serif',
                           }),
                         }),
@@ -1029,7 +1030,10 @@ export function useTrafficMap({
         highlightSourceRef.current.addFeature(feature);
 
         // 線的起訖點各加一個小標記（起／終），方便辨識路線走向。
-        if (geometry.type === 'linestring' && geometry.coordinates.length >= 2) {
+        if (
+          geometry.type === 'linestring' &&
+          geometry.coordinates.length >= 2
+        ) {
           const endpoints: [string, LongitudeLatitude][] = [
             ['起', geometry.coordinates[0]],
             ['終', geometry.coordinates[geometry.coordinates.length - 1]],
@@ -1192,9 +1196,7 @@ export function useTrafficMap({
               | Feature
               | undefined;
             const members = getClusterMembers(clusterFeature);
-            interaction.setHoverFeature(
-              getClusterHoverFeature(clusterFeature),
-            );
+            interaction.setHoverFeature(getClusterHoverFeature(clusterFeature));
             if (!hoverTitle && members.length > 0) {
               hoverTitle = getClusterTitle(
                 members,
@@ -1230,9 +1232,7 @@ export function useTrafficMap({
       if (resolution === undefined || zoom === undefined || !center) return;
 
       clearClusterExpansions();
-      if (
-        shouldExpandCluster({ extent, resolution, zoom, maxZoom: 17 })
-      ) {
+      if (shouldExpandCluster({ extent, resolution, zoom, maxZoom: 17 })) {
         interaction.expand(members, center, resolution);
         popupOverlay.setPosition(undefined);
         setSelectedFeature(null);
@@ -1345,11 +1345,7 @@ export function useTrafficMap({
         if (!features.length) continue;
         const members = getClusterMembers(features[0] as Feature);
         if (members.length > 1) {
-          revealClusterMembers(
-            interaction,
-            features[0] as Feature,
-            members,
-          );
+          revealClusterMembers(interaction, features[0] as Feature, members);
           return;
         }
         if (!members.length) continue;
@@ -1590,7 +1586,9 @@ export function useTrafficMap({
         popupOverlayRef.current?.setPosition(undefined);
         return null;
       }
-      const updated = busLayer.points.find((point) => point.id === current.data.id);
+      const updated = busLayer.points.find(
+        (point) => point.id === current.data.id,
+      );
       if (!updated) {
         popupOverlayRef.current?.setPosition(undefined);
         return null;

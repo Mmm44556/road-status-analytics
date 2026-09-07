@@ -55,7 +55,7 @@ export default function MapToolbar({
       sx={{
         position: 'absolute',
         zIndex: 6,
-        top: { xs: 18, sm: 24 },
+        top: { xs: 12, sm: 24 },
         left: { xs: 12, md: 16 },
         right: { xs: 12, md: 16 },
         display: 'flex',
