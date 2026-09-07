@@ -1,0 +1,13 @@
+.git
+.venv
+node_modules
+dist
+docs
+tasks
+**/__pycache__
+*.pyc
+.DS_Store
+.env
+.env.*
+!.env.example
+*.md
