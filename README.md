@@ -1,5 +1,7 @@
 # RouteSight 路況觀測站
 
+[![CI](https://github.com/Mmm44556/road-status-analytics/actions/workflows/ci.yml/badge.svg)](https://github.com/Mmm44556/road-status-analytics/actions/workflows/ci.yml)
+
 全臺即時交通 GIS，整合路況、道路事件、CCTV、公車、YouBike、捷運與停車資訊，並內建 AI 路線助理——用日常語言下指令，AI 會直接呼叫地圖操作（選取範圍、切換底圖、規劃路線）而不是只回一段文字。前端只呼叫本專案的 FastAPI 後端，TDX／Geoapify／Gemini 的憑證、OAuth token 與快取皆由後端集中管理，瀏覽器端不會接觸任何金鑰。
 
 - <a href="#demo">畫面預覽</a>
@@ -234,7 +236,6 @@ server/
 
 <h2 id="roadmap">已知限制與規劃中項目</h2>
 
-- 尚未建立 CI pipeline，測試／lint／build 目前僅靠本機手動執行。
 - `gemini_client.py`、`road_event_service.py` 與部分前端純函式（`wkt.ts`、`countySelectionPresentation.ts`）尚無專屬測試。
 - Production bundle 仍是單一主 chunk（約 1.1MB），尚未做路由層級的 code-splitting。
 - 尚無正式對外部署與線上 Demo 連結；本機可用 <a href="#docker">Docker</a> 跑起正式環境風格的版本。
