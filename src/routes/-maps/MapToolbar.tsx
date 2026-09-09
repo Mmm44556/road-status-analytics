@@ -72,6 +72,7 @@ export default function MapToolbar({
       }}
     >
       <Box
+        id="map-tour-search"
         sx={{
           width: { xs: '100%', sm: 420 },
           maxWidth: 520,
@@ -230,6 +231,7 @@ export default function MapToolbar({
         slotProps={tooltipSlots}
       >
         <IconButton
+          id="map-tour-route-planner"
           onClick={onToggleRoutePlanner}
           aria-label={isRoutePlannerOpen ? '關閉路線規劃' : '開啟路線規劃'}
           aria-pressed={isRoutePlannerOpen}

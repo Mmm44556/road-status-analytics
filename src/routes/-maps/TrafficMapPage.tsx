@@ -11,6 +11,7 @@ import LayerMenu from './LayerMenu';
 import MapToolbar from './MapToolbar';
 import TrafficLegend from './TrafficLegend';
 import CountySelectionControl from './CountySelectionControl';
+import MapTourButton from './MapTourButton';
 import type { CountySelection } from '@/service/map/features/countyBoundaries';
 import type { TownshipSelection } from '@/service/map/features/townshipBoundaries';
 import { DEFAULT_BASEMAP_ID, type BasemapId } from '@/data/basemapCatalog';
@@ -359,6 +360,7 @@ export default function TrafficMapPage() {
               isOpen={isAiChatOpen}
               onToggle={() => setIsAiChatOpen((current) => !current)}
             />
+            <MapTourButton />
             {isRoutePlannerOpen && (
               <RoutePlannerCard
                 city={null}

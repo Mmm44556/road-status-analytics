@@ -62,6 +62,7 @@ export default function AiChatFab({ isOpen, onToggle }: AiChatFabProps) {
       slotProps={tooltipSlots}
     >
       <IconButton
+        id="map-tour-ai-chat"
         ref={buttonRef}
         onClick={handleClick}
         aria-label={

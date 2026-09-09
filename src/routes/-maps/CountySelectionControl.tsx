@@ -49,6 +49,7 @@ export default function CountySelectionControl({
 
   return (
     <Box
+      id="map-tour-county"
       sx={{
         position: 'absolute',
         zIndex: 7,
