@@ -16,6 +16,8 @@ const placeSearchResponseSchema = z.object({
 
 export type PlaceSearchResult = z.infer<typeof placeSearchResultSchema>;
 
+const apiBaseUrl = (import.meta.env.VITE_API_BASE_URL ?? '/api').replace(/\/$/, '');
+
 /** 透過後端查詢地點，避免前端直接耦合特定供應商。 */
 export async function searchPlaces(
   query: string,
@@ -24,9 +26,12 @@ export async function searchPlaces(
 ): Promise<PlaceSearchResult[]> {
   const params = new URLSearchParams({ q: query, limit: '5' });
   if (city) params.set('city', city);
-  const response = await fetcher(`/api/places/search?${params.toString()}`, {
-    headers: { Accept: 'application/json' },
-  });
+  const response = await fetcher(
+    `${apiBaseUrl}/places/search?${params.toString()}`,
+    {
+      headers: { Accept: 'application/json' },
+    },
+  );
   if (!response.ok) throw new Error('地點搜尋服務暫時無法使用。');
   return placeSearchResponseSchema.parse(await response.json()).data;
 }
