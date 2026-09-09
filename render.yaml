@@ -47,11 +47,10 @@ services:
   - type: keyvalue
     name: routesight-redis
     plan: free
-    # Render Key Value 需要明確設定 ipAllowList 才能對外連線；連線本身
-    # 還是靠 connectionString 裡的密碼保護，不是真的對外全開。
-    ipAllowList:
-      - source: 0.0.0.0/0
-        description: allow backend service
+    # 空陣列＝只開放 Render 內部私有網路連線，不對公網開放。backend 是
+    # 同帳號下的服務，會自動走內部連線字串連進來，不需要（也不應該）讓
+    # Redis 暴露在公網上讓任何人都能嘗試連線。
+    ipAllowList: []
 
   - type: web
     name: routesight-frontend
