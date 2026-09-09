@@ -60,16 +60,23 @@ class SlidingWindowRateLimiterTests(unittest.TestCase):
         self.assertAlmostEqual(context.exception.retry_after_seconds, 50.0)
 
 
+def _make_request(headers=None, host="1.2.3.4"):
+    return SimpleNamespace(
+        headers=headers or {},
+        client=SimpleNamespace(host=host) if host is not None else None,
+    )
+
+
 class EnforceAiChatRateLimitTests(unittest.TestCase):
     def test_passes_through_when_under_the_limit(self):
         limiter = SlidingWindowRateLimiter(max_requests=1, window_seconds=60)
-        request = SimpleNamespace(client=SimpleNamespace(host="1.2.3.4"))
+        request = _make_request()
 
         enforce_ai_chat_rate_limit(request, limiter)
 
     def test_raises_429_with_retry_after_header_when_over_the_limit(self):
         limiter = SlidingWindowRateLimiter(max_requests=1, window_seconds=60)
-        request = SimpleNamespace(client=SimpleNamespace(host="1.2.3.4"))
+        request = _make_request()
 
         enforce_ai_chat_rate_limit(request, limiter)
         with self.assertRaises(HTTPException) as context:
@@ -80,11 +87,41 @@ class EnforceAiChatRateLimitTests(unittest.TestCase):
 
     def test_treats_a_missing_client_as_a_single_shared_key(self):
         limiter = SlidingWindowRateLimiter(max_requests=1, window_seconds=60)
-        request = SimpleNamespace(client=None)
+        request = _make_request(host=None)
 
         enforce_ai_chat_rate_limit(request, limiter)
         with self.assertRaises(HTTPException):
             enforce_ai_chat_rate_limit(request, limiter)
+
+    def test_prefers_cf_connecting_ip_over_the_proxy_that_terminated_the_connection(self):
+        # 部署在 Render／Cloudflare 後面時，request.client.host 是代理自己
+        # 的 IP，兩個不同使用者若都被同一層代理轉送，client.host 會相同，
+        # 但 CF-Connecting-IP 應該正確區分出兩個獨立來源。
+        limiter = SlidingWindowRateLimiter(max_requests=1, window_seconds=60)
+        proxy_host = "10.0.0.1"
+        user_a = _make_request(
+            headers={"cf-connecting-ip": "1.1.1.1"}, host=proxy_host
+        )
+        user_b = _make_request(
+            headers={"cf-connecting-ip": "2.2.2.2"}, host=proxy_host
+        )
+
+        enforce_ai_chat_rate_limit(user_a, limiter)
+        enforce_ai_chat_rate_limit(user_b, limiter)  # 不應該被 user_a 用光的額度擋下來
+
+    def test_falls_back_to_the_first_x_forwarded_for_entry(self):
+        limiter = SlidingWindowRateLimiter(max_requests=1, window_seconds=60)
+        request = _make_request(
+            headers={"x-forwarded-for": "3.3.3.3, 10.0.0.1"}
+        )
+
+        enforce_ai_chat_rate_limit(request, limiter)
+        with self.assertRaises(HTTPException):
+            # 同一個 X-Forwarded-For 來源，第二次要被擋下來才對。
+            enforce_ai_chat_rate_limit(
+                _make_request(headers={"x-forwarded-for": "3.3.3.3, 10.0.0.2"}),
+                limiter,
+            )
 
 
 if __name__ == "__main__":
