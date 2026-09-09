@@ -34,16 +34,20 @@ import {
   type MapQueryMode,
 } from './mapQueryMode';
 
+/** 圖層預設的可見集合，初始掛載與「重置所有設定」都要用同一份，避免各寫一次兩邊漏改。 */
+function getDefaultVisibleLayers(): Set<TrafficLayerId> {
+  return new Set(
+    trafficLayerCatalog
+      .filter((layer) => layer.defaultVisible)
+      .map((layer) => layer.id),
+  );
+}
+
 /** 組合 GIS 地圖、圖層控制與搜尋工具。 */
 export default function TrafficMapPage() {
   const mapController = useMemo(() => createMapController(), []);
   const [visibleLayers, setVisibleLayers] = useState<Set<TrafficLayerId>>(
-    () =>
-      new Set(
-        trafficLayerCatalog
-          .filter((layer) => layer.defaultVisible)
-          .map((layer) => layer.id),
-      ),
+    getDefaultVisibleLayers,
   );
   const areaVisibleLayersRef = useRef(new Set(visibleLayers));
   const [notice, setNotice] = useState<string | null>(null);
@@ -124,6 +128,34 @@ export default function TrafficMapPage() {
       if (queryMode === 'area') areaVisibleLayersRef.current = new Set(current);
       return getRouteModeVisibleLayers(nextRoute.travelMode);
     });
+  };
+
+  /**
+   * NavBar 的「重置所有設定」：路線不管是手動規劃還是透過 AI 聊天建立的，
+   * 只要 RoutePlannerCard 沒開著就摸不到裡面的「清除」按鈕，先前唯一的
+   * 取消方式是再回頭跟 AI 說一次「取消」。這裡不管哪個面板現在開著沒，
+   * 直接把整頁狀態打回剛進站時的初始值。
+   */
+  const resetAll = () => {
+    const defaultLayers = getDefaultVisibleLayers();
+    areaVisibleLayersRef.current = new Set(defaultLayers);
+    setVisibleLayers(defaultLayers);
+    setNotice(null);
+    setSearchResults([]);
+    setIsSearching(false);
+    setIsRoutePlannerOpen(false);
+    setIsAiChatOpen(false);
+    setRoute(null);
+    setRouteAnalysis({ status: 'idle' });
+    setQueryMode('area');
+    setRouteCities([]);
+    setShowBoundaryMask(true);
+    setShowAdministrativeBoundaries(true);
+    setBasemapId(DEFAULT_BASEMAP_ID);
+    setSelectedCounty(null);
+    setSelectedTownship(null);
+    setIsTownshipSelectionComplete(false);
+    mapController.fitTaiwan();
   };
 
   /** 取得目前位置，供定位按鈕與路線起點共用。 */
@@ -295,6 +327,7 @@ export default function TrafficMapPage() {
               canToggleLayer={canToggleLayer}
               basemapId={basemapId}
               onChangeBasemap={setBasemapId}
+              onReset={resetAll}
             />
             {visibleLayers.has('liveTraffic') && <TrafficLegend />}
             {queryMode === 'area' && (
@@ -314,6 +347,7 @@ export default function TrafficMapPage() {
               onLocate={locateUser}
               onSearch={searchPlace}
               searchResults={searchResults}
+              onClearResults={() => setSearchResults([])}
               isSearching={isSearching}
               onSelectResult={selectSearchResult}
               isRoutePlannerOpen={isRoutePlannerOpen}

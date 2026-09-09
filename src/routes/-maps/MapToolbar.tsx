@@ -13,6 +13,7 @@ import Link from '@mui/material/Link';
 import Typography from '@mui/material/Typography';
 import MyLocationIcon from '@mui/icons-material/MyLocation';
 import AltRouteRoundedIcon from '@mui/icons-material/AltRouteRounded';
+import CloseRoundedIcon from '@mui/icons-material/CloseRounded';
 import SearchRoundedIcon from '@mui/icons-material/SearchRounded';
 import {
   radiusTokens,
@@ -27,6 +28,7 @@ type MapToolbarProps = {
   onLocate: () => void;
   onSearch: (query: string) => void;
   searchResults: PlaceSearchResult[];
+  onClearResults: () => void;
   isSearching: boolean;
   onSelectResult: (result: PlaceSearchResult) => void;
   isRoutePlannerOpen: boolean;
@@ -38,6 +40,7 @@ export default function MapToolbar({
   onLocate,
   onSearch,
   searchResults,
+  onClearResults,
   isSearching,
   onSelectResult,
   isRoutePlannerOpen,
@@ -54,7 +57,12 @@ export default function MapToolbar({
     <Box
       sx={{
         position: 'absolute',
-        zIndex: 6,
+        // 平常刻意比 CountySelectionControl 等主要浮動面板（zIndex:7，其
+        // 內部 Popper 到 8）低一層，讓那些面板疊在搜尋列上方；但手機版
+        // CountySelectionControl 的「選取步驟」提示跟搜尋結果清單的位置
+        // 會重疊，清單一展開就會被步驟提示蓋住、點不到。所以只在搜尋結果
+        // 展開時才把整條工具列暫時拉到最上層，平常維持原本的疊放順序。
+        zIndex: searchResults.length > 0 ? 9 : 6,
         top: { xs: 12, sm: 24 },
         left: { xs: 12, md: 16 },
         right: { xs: 12, md: 16 },
@@ -134,6 +142,35 @@ export default function MapToolbar({
               boxShadow: shadowTokens.control,
             }}
           >
+            <Box
+              sx={{
+                display: 'flex',
+                alignItems: 'center',
+                justifyContent: 'space-between',
+                pl: 2,
+                pr: 0.5,
+                py: 0.5,
+                borderBottom: '1px solid',
+                borderColor: 'divider',
+              }}
+            >
+              <Typography
+                variant="caption"
+                fontWeight={700}
+                color="text.secondary"
+              >
+                地點搜尋結果
+              </Typography>
+              <Tooltip title="關閉搜尋結果" slotProps={tooltipSlots}>
+                <IconButton
+                  size="small"
+                  onClick={onClearResults}
+                  aria-label="關閉搜尋結果"
+                >
+                  <CloseRoundedIcon fontSize="small" />
+                </IconButton>
+              </Tooltip>
+            </Box>
             <List aria-label="地點搜尋結果" disablePadding>
               {searchResults.map((result) => (
                 <ListItemButton

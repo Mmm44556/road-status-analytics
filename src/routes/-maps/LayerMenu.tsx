@@ -26,6 +26,7 @@ import DirectionsTransitRoundedIcon from '@mui/icons-material/DirectionsTransitR
 import LayersRoundedIcon from '@mui/icons-material/LayersRounded';
 import LocalParkingRoundedIcon from '@mui/icons-material/LocalParkingRounded';
 import MapRoundedIcon from '@mui/icons-material/MapRounded';
+import SettingsBackupRestoreRoundedIcon from '@mui/icons-material/SettingsBackupRestoreRounded';
 import SettingsRoundedIcon from '@mui/icons-material/SettingsRounded';
 import TrafficRoundedIcon from '@mui/icons-material/TrafficRounded';
 import type { TrafficLayerId } from '@/data/trafficLayerCatalog';
@@ -51,6 +52,8 @@ type LayerMenuProps = {
   canToggleLayer: (layerId: TrafficLayerId) => boolean;
   basemapId: BasemapId;
   onChangeBasemap: (basemapId: BasemapId) => void;
+  /** 清空路線、查詢範圍與圖層設定，回到剛進站時的初始狀態。放在「設定」分類裡。 */
+  onReset: () => void;
 };
 
 type SelectableItemProps = {
@@ -106,11 +109,9 @@ export default function LayerMenu({
   canToggleLayer,
   basemapId,
   onChangeBasemap,
+  onReset,
 }: LayerMenuProps) {
   const theme = useTheme();
-  // 手機版沒有 preventOverflow／flip modifier 的 Popper 貼著螢幕邊緣容易被裁切，
-  // 改用從底部滑出的 Drawer（滿版寬度、貼底部，不會有錨點定位溢出的問題）；
-  // 桌面版維持原本的 Popper。
   const isDesktop = useMediaQuery(theme.breakpoints.up('md'));
   const [portalTarget, setPortalTarget] = useState<HTMLElement | null>(null);
   const [menuAnchor, setMenuAnchor] = useState<HTMLElement | null>(null);
@@ -223,7 +224,7 @@ export default function LayerMenu({
           </IconButton>
         )}
         <Box>
-          <Typography variant="subtitle2" fontWeight={800}>
+          <Typography variant="subtitle1" fontWeight={800}>
             {showCategoryPicker ? '圖層' : activeDefinition.label}
           </Typography>
           <Typography variant="caption" color="text.secondary">
@@ -331,6 +332,25 @@ export default function LayerMenu({
                   secondary="僅切換顯示，不會跳過選擇流程"
                   onClick={onToggleAdministrativeBoundaries}
                 />
+                <Divider component="li" sx={{ my: 0.5 }} />
+                {/* 路線不管是手動規劃還是透過 AI 聊天建立的，只要
+                    RoutePlannerCard 沒開著就摸不到裡面的「清除」按鈕，
+                    先前唯一的取消方式是再回頭跟 AI 說一次「取消」。這裡
+                    不管哪個面板現在開著沒，一鍵清空回到剛進站的初始狀態。 */}
+                <MenuItem
+                  onClick={() => {
+                    onReset();
+                    closeMenu();
+                  }}
+                >
+                  <ListItemIcon>
+                    <SettingsBackupRestoreRoundedIcon fontSize="small" />
+                  </ListItemIcon>
+                  <ListItemText
+                    primary="重置所有設定"
+                    secondary="清空路線、查詢範圍與圖層設定"
+                  />
+                </MenuItem>
               </>
             )}
           </MenuList>
@@ -386,8 +406,6 @@ export default function LayerMenu({
           alignItems: 'center',
           gap: 0.5,
           flexWrap: 'nowrap',
-          // 按鈕本身不縮小，容器（NavBar 的 #header-layer-controls）滿了就用捲動，
-          // 這樣之後再加圖層分類也只是多滑一點，不會擠壞既有按鈕或破版。
           flexShrink: 0,
         }}
       >
@@ -438,9 +456,9 @@ export default function LayerMenu({
       <Tooltip title="圖層選單">
         <Badge
           badgeContent={totalActiveLayerCount}
-          color="secondary"
+          color="primary"
           invisible={totalActiveLayerCount === 0}
-          sx={{ display: { xs: 'inline-flex', md: 'none' } }}
+          sx={{ display: { xs: 'inline-flex', md: 'none' }, top: 2 }}
         >
           <Button
             color="inherit"
