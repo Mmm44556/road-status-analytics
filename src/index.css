@@ -1,20 +1,37 @@
-@import "@fontsource/inter/400.css";
-@import "@fontsource/inter/500.css";
-@import "@fontsource/inter/600.css";
-@import "@fontsource/inter/700.css";
+@import '@fontsource/inter/400.css';
+@import '@fontsource/inter/500.css';
+@import '@fontsource/inter/600.css';
+@import '@fontsource/inter/700.css';
 * {
   font-variant-numeric: tabular-nums;
 }
-html {
-  height: 100dvh;
-}
 
+html,
 body,
 #root {
-  width: 100%;
   height: 100%;
 }
 
-body { margin: 0; min-width: 320px; }
-* { box-sizing: border-box; }
-::selection { background: #b9e7dc; color: #0b2e3c; }
+body {
+  margin: 0;
+  overflow-x: hidden;
+}
+* {
+  box-sizing: border-box;
+}
+::selection {
+  background: #b9f1e3;
+  color: #062b5b;
+}
+/* 錨定右下角，避開左下角的 AI 聊天入口與面板；桌面版再往上提，避開即時路況圖例。 */
+.layer-snackbar-container {
+  right: 24px !important;
+  bottom: 90px !important;
+}
+
+@media (max-width: 899.95px) {
+  .layer-snackbar-container {
+    right: 12px !important;
+    bottom: 12px !important;
+  }
+}

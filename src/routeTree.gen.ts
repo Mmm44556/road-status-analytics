@@ -9,18 +9,12 @@
 // Additionally, you should also exclude this file from your linter and/or formatter to prevent it from being checked or modified.
 
 import { Route as rootRouteImport } from './routes/__root'
-import { Route as MapsRouteRouteImport } from './routes/maps/route'
-import { Route as AnalyticsRouteRouteImport } from './routes/analytics/route'
+import { Route as WelcomeRouteImport } from './routes/welcome'
 import { Route as IndexRouteImport } from './routes/index'
 
-const MapsRouteRoute = MapsRouteRouteImport.update({
-  id: '/maps',
-  path: '/maps',
-  getParentRoute: () => rootRouteImport,
-} as any)
-const AnalyticsRouteRoute = AnalyticsRouteRouteImport.update({
-  id: '/analytics',
-  path: '/analytics',
+const WelcomeRoute = WelcomeRouteImport.update({
+  id: '/welcome',
+  path: '/welcome',
   getParentRoute: () => rootRouteImport,
 } as any)
 const IndexRoute = IndexRouteImport.update({
@@ -31,48 +25,37 @@ const IndexRoute = IndexRouteImport.update({
 
 export interface FileRoutesByFullPath {
   '/': typeof IndexRoute
-  '/analytics': typeof AnalyticsRouteRoute
-  '/maps': typeof MapsRouteRoute
+  '/welcome': typeof WelcomeRoute
 }
 export interface FileRoutesByTo {
   '/': typeof IndexRoute
-  '/analytics': typeof AnalyticsRouteRoute
-  '/maps': typeof MapsRouteRoute
+  '/welcome': typeof WelcomeRoute
 }
 export interface FileRoutesById {
   __root__: typeof rootRouteImport
   '/': typeof IndexRoute
-  '/analytics': typeof AnalyticsRouteRoute
-  '/maps': typeof MapsRouteRoute
+  '/welcome': typeof WelcomeRoute
 }
 export interface FileRouteTypes {
   fileRoutesByFullPath: FileRoutesByFullPath
-  fullPaths: '/' | '/analytics' | '/maps'
+  fullPaths: '/' | '/welcome'
   fileRoutesByTo: FileRoutesByTo
-  to: '/' | '/analytics' | '/maps'
-  id: '__root__' | '/' | '/analytics' | '/maps'
+  to: '/' | '/welcome'
+  id: '__root__' | '/' | '/welcome'
   fileRoutesById: FileRoutesById
 }
 export interface RootRouteChildren {
   IndexRoute: typeof IndexRoute
-  AnalyticsRouteRoute: typeof AnalyticsRouteRoute
-  MapsRouteRoute: typeof MapsRouteRoute
+  WelcomeRoute: typeof WelcomeRoute
 }
 
 declare module '@tanstack/react-router' {
   interface FileRoutesByPath {
-    '/maps': {
-      id: '/maps'
-      path: '/maps'
-      fullPath: '/maps'
-      preLoaderRoute: typeof MapsRouteRouteImport
-      parentRoute: typeof rootRouteImport
-    }
-    '/analytics': {
-      id: '/analytics'
-      path: '/analytics'
-      fullPath: '/analytics'
-      preLoaderRoute: typeof AnalyticsRouteRouteImport
+    '/welcome': {
+      id: '/welcome'
+      path: '/welcome'
+      fullPath: '/welcome'
+      preLoaderRoute: typeof WelcomeRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/': {
@@ -87,8 +70,7 @@ declare module '@tanstack/react-router' {
 
 const rootRouteChildren: RootRouteChildren = {
   IndexRoute: IndexRoute,
-  AnalyticsRouteRoute: AnalyticsRouteRoute,
-  MapsRouteRoute: MapsRouteRoute,
+  WelcomeRoute: WelcomeRoute,
 }
 export const routeTree = rootRouteImport
   ._addFileChildren(rootRouteChildren)

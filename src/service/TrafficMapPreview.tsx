@@ -1,225 +1,360 @@
-import { useEffect, useMemo, useRef, useState } from "react";
-import Alert from "@mui/material/Alert";
-import Box from "@mui/material/Box";
-import Chip from "@mui/material/Chip";
-import CircularProgress from "@mui/material/CircularProgress";
-import IconButton from "@mui/material/IconButton";
-import Paper from "@mui/material/Paper";
-import Typography from "@mui/material/Typography";
-import CloseRoundedIcon from "@mui/icons-material/CloseRounded";
-import MyLocationRoundedIcon from "@mui/icons-material/MyLocationRounded";
-import Feature from "ol/Feature";
-import OlMap from "ol/Map";
-import View from "ol/View";
-import Point from "ol/geom/Point";
-import Polygon from "ol/geom/Polygon";
-import TileLayer from "ol/layer/Tile";
-import VectorLayer from "ol/layer/Vector";
-import Cluster from "ol/source/Cluster";
-import VectorSource from "ol/source/Vector";
-import XYZ from "ol/source/XYZ";
-import { defaults as defaultControls } from "ol/control/defaults";
-import { boundingExtent } from "ol/extent";
-import { unByKey } from "ol/Observable";
-import { fromLonLat } from "ol/proj";
-import CircleStyle from "ol/style/Circle";
-import Fill from "ol/style/Fill";
-import Stroke from "ol/style/Stroke";
-import Style from "ol/style/Style";
-import Text from "ol/style/Text";
-import "ol/ol.css";
-import { uiColors } from "@/config/semanticColors";
-import { useTrafficMapContext } from "@/hooks/useGetContext";
-import { roadEventsToMapPoints, type RoadEventMapPoint } from "@/service/map/mapFeatures";
-import { useRoadEvents } from "@/service/trafficApi";
-import { getNlscTileUrl } from "@/service/map/nlscTiles";
+import { useEffect, useMemo, useRef, useState } from 'react';
+import { createPortal } from 'react-dom';
+import Box from '@mui/material/Box';
+import Chip from '@mui/material/Chip';
+import IconButton from '@mui/material/IconButton';
+import Typography from '@mui/material/Typography';
+import MyLocationRoundedIcon from '@mui/icons-material/MyLocationRounded';
+import 'ol/ol.css';
+import { shadowTokens, typographyTokens } from '@/config/designTokens';
+import { uiColors } from '@/config/semanticColors';
+import RouteLoadingIndicator from '@/components/RouteLoadingIndicator';
+import { useTrafficMapContext } from '@/hooks/useGetContext';
+import { useCctvLayer } from '@/service/map/layers/useCctvLayer';
+import { useRoadEventLayer } from '@/service/map/layers/useRoadEventLayer';
+import { useLiveTrafficLayer } from '@/service/map/layers/useLiveTrafficLayer';
+import { useVdLayer } from '@/service/map/layers/useVdLayer';
+import { useBikeLayer } from '@/service/map/layers/useBikeLayer';
+import { useMetroLayer } from '@/service/map/layers/useMetroLayer';
+import { useBusLayer } from '@/service/map/layers/useBusLayer';
+import { useParkingLotLayer } from '@/service/map/layers/useParkingLotLayer';
+import { useParkingSegmentLayer } from '@/service/map/layers/useParkingSegmentLayer';
+import { useTrafficMap } from '@/service/map/useTrafficMap';
+import SelectedFeaturePopup from '@/service/map/popups/SelectedFeaturePopup';
+import { getLayerStatuses } from '@/service/map/layerErrors';
+import { useSelectedFeatureRefresh } from '@/service/map/selectedFeatureRefresh';
+import { useLayerStatusSnackbars } from '@/service/map/useLayerStatusSnackbars';
+import type { CountySelection } from '@/service/map/features/countyBoundaries';
+import type { TownshipSelection } from '@/service/map/features/townshipBoundaries';
+import { DEFAULT_BASEMAP_ID, type BasemapId } from '@/data/basemapCatalog';
+import type { RouteResult } from '@/service/routeApi';
+import {
+  analyzeRouteEvents,
+  type RouteEventAnalysisState,
+} from '@/service/map/features/routeEventAnalysis';
 
 type TrafficMapPreviewProps = {
   height?: number | string | Record<string, number | string>;
-  city?: string;
+  city?: string | null;
+  showLocateControl?: boolean;
+  showEventCount?: boolean;
+  showRoadEvents?: boolean;
+  showCctv?: boolean;
+  showLiveTraffic?: boolean;
+  showVehicleDetectors?: boolean;
+  showBikeShare?: boolean;
+  showMetro?: boolean;
+  showBus?: boolean;
+  showParkingLots?: boolean;
+  showParkingSegments?: boolean;
+  showBoundaryMask?: boolean;
+  showAdministrativeBoundaries?: boolean;
+  basemapId?: BasemapId;
+  isSelectingCounty?: boolean;
+  selectedCountyId?: string | null;
+  onSelectCounty?: (county: CountySelection) => void;
+  isSelectingTownship?: boolean;
+  selectedTownshipId?: string | null;
+  onSelectTownship?: (township: TownshipSelection) => void;
+  /** 含 geometry 的完整鄉鎮選取，用於交通圖層的前端空間篩選；只有 id 用於地圖高亮的用 selectedTownshipId。 */
+  selectedTownship?: TownshipSelection | null;
+  route?: RouteResult | null;
+  routeCities?: string[];
+  onRouteAnalysisChange?: (state: RouteEventAnalysisState) => void;
 };
 
-const eventColors: Record<number, string> = {
-  1: uiColors.event.accident.main,
-  2: uiColors.event.construction.main,
-  3: uiColors.event.congestion.main,
-  4: uiColors.event.control.main,
-  5: uiColors.event.weather.main,
-  6: uiColors.event.disaster.main,
-  7: uiColors.event.activity.main,
-  8: uiColors.event.hazard.main,
-};
-
-const pointStyle = (color: string) => new Style({
-  image: new CircleStyle({
-    radius: 7,
-    fill: new Fill({ color }),
-    stroke: new Stroke({ color: "#FFFFFF", width: 2 }),
-  }),
-});
-
+/** 顯示具事件 cluster、點位 popup 與定位能力的 OpenLayers 地圖。 */
 export default function TrafficMapPreview({
   height = { xs: 440, md: 620 },
-  city = "臺中市",
+  city = null,
+  showLocateControl = true,
+  showEventCount = true,
+  showRoadEvents = true,
+  showCctv = true,
+  showLiveTraffic = false,
+  showVehicleDetectors = false,
+  showBikeShare = false,
+  showMetro = false,
+  showBus = false,
+  showParkingLots = false,
+  showParkingSegments = false,
+  showBoundaryMask = true,
+  showAdministrativeBoundaries = true,
+  basemapId = DEFAULT_BASEMAP_ID,
+  isSelectingCounty = false,
+  selectedCountyId = null,
+  onSelectCounty = () => undefined,
+  isSelectingTownship = false,
+  selectedTownshipId = null,
+  onSelectTownship = () => undefined,
+  selectedTownship = null,
+  route = null,
+  routeCities = [],
+  onRouteAnalysisChange = () => undefined,
 }: TrafficMapPreviewProps) {
   const mapContainer = useRef<HTMLDivElement>(null);
-  const eventSourceRef = useRef(new VectorSource());
-  const highlightSourceRef = useRef(new VectorSource());
+  // OpenLayers 的 Overlay 會把這個節點搬到地圖內部的 overlay container，
+  // 不能讓 React 把它當成一般子節點處理（否則 reconcile 時可能對已被搬走
+  // 的節點呼叫 insertBefore 而丟出 NotFoundError），所以用 portal 渲染內容。
+  const [popupContainer] = useState(() => document.createElement('div'));
   const { mapController } = useTrafficMapContext();
-  const { data: roadEvents, isError: isRoadEventError } = useRoadEvents(city);
-  const [isLoading, setIsLoading] = useState(true);
-  const [error, setError] = useState<string | null>(null);
-  const [dismissedApiError, setDismissedApiError] = useState(false);
-  const [selectedEvent, setSelectedEvent] = useState<RoadEventMapPoint | null>(null);
-  const mapPoints = useMemo(
-    () => roadEventsToMapPoints(
-      roadEvents?.data.preview.Events ?? [],
-      roadEvents?.data.live.LiveEvents ?? [],
-    ),
-    [roadEvents],
+  const roadEventLayer = useRoadEventLayer(
+    city,
+    showRoadEvents,
+    selectedTownship,
+    Boolean(route),
+    routeCities,
+    route?.geometry ?? null,
   );
+  const cctvLayer = useCctvLayer(
+    city,
+    showCctv,
+    selectedTownship,
+    routeCities,
+    route?.geometry ?? null,
+  );
+  const liveTrafficLayer = useLiveTrafficLayer(
+    city,
+    showLiveTraffic,
+    selectedTownship,
+  );
+  const vdLayer = useVdLayer(
+    city,
+    showVehicleDetectors,
+    selectedTownship,
+    routeCities,
+    route?.geometry ?? null,
+  );
+  const bikeLayer = useBikeLayer(
+    city,
+    showBikeShare,
+    selectedTownship,
+    routeCities,
+  );
+  const metroLayer = useMetroLayer(
+    city,
+    showMetro,
+    selectedTownship,
+    routeCities,
+  );
+  const busLayer = useBusLayer(city, showBus, selectedTownship, routeCities);
+  const parkingLotLayer = useParkingLotLayer(
+    city,
+    showParkingLots,
+    selectedTownship,
+  );
+  const parkingSegmentLayer = useParkingSegmentLayer(
+    city,
+    showParkingSegments,
+    selectedTownship,
+  );
+  const routeAnalysis = useMemo(() => {
+    if (!route || route.travelMode !== 'drive')
+      return { status: 'idle' } as const;
+    if (roadEventLayer.isLoading) return { status: 'loading' } as const;
+    if (roadEventLayer.isError) return { status: 'error' } as const;
+    return {
+      status: 'ready',
+      analysis: analyzeRouteEvents(route.geometry, roadEventLayer.allPoints),
+    } as const;
+  }, [
+    route,
+    roadEventLayer.allPoints,
+    roadEventLayer.isError,
+    roadEventLayer.isLoading,
+  ]);
 
   useEffect(() => {
-    if (!mapContainer.current) return;
+    onRouteAnalysisChange(routeAnalysis);
+  }, [onRouteAnalysisChange, routeAnalysis]);
+  const { isLoading, selectedFeature, closePopup } = useTrafficMap({
+    mapContainer,
+    popupContainer,
+    mapController,
+    roadEventLayer,
+    cctvLayer,
+    liveTrafficLayer,
+    vdLayer,
+    bikeLayer,
+    metroLayer,
+    busLayer,
+    parkingLotLayer,
+    parkingSegmentLayer,
+    showRoadEvents,
+    showCctv,
+    showLiveTraffic,
+    showVehicleDetectors,
+    showBikeShare,
+    showMetro,
+    showBus,
+    showParkingLots,
+    showParkingSegments,
+    showBoundaryMask,
+    showAdministrativeBoundaries,
+    basemapId,
+    isSelectingCounty,
+    selectedCountyId,
+    onSelectCounty,
+    isSelectingTownship,
+    selectedTownshipId,
+    onSelectTownship,
+    route,
+  });
 
-    const clusterSource = new Cluster({
-      distance: 64,
-      minDistance: 20,
-      source: eventSourceRef.current,
-    });
-    const styleCache = new globalThis.Map<number, Style>();
-    const eventLayer = new VectorLayer({
-      source: clusterSource,
-      style: (feature) => {
-        const members = feature.get("features") as Feature<Point>[];
-        const size = members.length;
-        if (size === 1) {
-          const event = members[0].get("event") as RoadEventMapPoint;
-          return pointStyle(eventColors[event.eventType] ?? uiColors.event.control.main);
-        }
-        let style = styleCache.get(size);
-        if (!style) {
-          style = new Style({
-            image: new CircleStyle({
-              radius: Math.min(28, 16 + Math.log2(size) * 3),
-              fill: new Fill({ color: "rgba(182,93,19,.92)" }),
-              stroke: new Stroke({ color: "#FFFFFF", width: 2 }),
-            }),
-            text: new Text({
-              text: String(size),
-              fill: new Fill({ color: "#FFFFFF" }),
-              stroke: new Stroke({ color: "rgba(16,47,58,.6)", width: 2 }),
-              font: "700 12px Inter, sans-serif",
-            }),
-          });
-          styleCache.set(size, style);
-        }
-        return style;
-      },
-    });
-    const highlightLayer = new VectorLayer({ source: highlightSourceRef.current });
-    const map = new OlMap({
-      target: mapContainer.current,
-      layers: [
-        new TileLayer({
-          source: new XYZ({
-            attributions: "內政部國土測繪中心",
-            tileUrlFunction: getNlscTileUrl,
-            crossOrigin: "anonymous",
-          }),
-        }),
-        eventLayer,
-        highlightLayer,
-      ],
-      view: new View({ center: fromLonLat([120.6478, 24.1477]), zoom: 12, minZoom: 7 }),
-      controls: defaultControls({ rotate: false, zoom: true, attribution: true }),
-    });
-    const renderKey = map.once("rendercomplete", () => setIsLoading(false));
+  const selectedFeatureRefresh = useSelectedFeatureRefresh(
+    city,
+    selectedFeature,
+  );
+  const layerStatuses = getLayerStatuses(
+    {
+      roadEvents: showRoadEvents && roadEventLayer.isError,
+      cctv: showCctv && cctvLayer.isError,
+      liveTraffic: showLiveTraffic && liveTrafficLayer.isError,
+      vehicleDetectors: showVehicleDetectors && vdLayer.isError,
+      bikeShare: showBikeShare && bikeLayer.isError,
+      metro: showMetro && metroLayer.isError,
+      bus: showBus && busLayer.isError,
+      parkingLots: showParkingLots && parkingLotLayer.isError,
+      parkingSegments: showParkingSegments && parkingSegmentLayer.isError,
+    },
+    {
+      roadEvents: roadEventLayer.isLoading,
+      cctv: cctvLayer.isLoading,
+      liveTraffic: liveTrafficLayer.isLoading,
+      vehicleDetectors: vdLayer.isLoading,
+      bikeShare: bikeLayer.isLoading,
+      metro: metroLayer.isLoading,
+      bus: busLayer.isLoading,
+      parkingLots: parkingLotLayer.isLoading,
+      parkingSegments: parkingSegmentLayer.isLoading,
+    },
+  );
+  useLayerStatusSnackbars(layerStatuses);
 
-    const flyTo = (center: [number, number], zoom: number) => {
-      map.getView().animate({ center: fromLonLat(center), zoom, duration: 650 });
-    };
-    mapController.attach({
-      flyTo,
-      showGeometry: (geometry) => {
-        if (highlightSourceRef.current.getFeatureById(geometry.id)) {
-          const feature = highlightSourceRef.current.getFeatureById(geometry.id);
-          const existingGeometry = feature?.getGeometry();
-          if (existingGeometry instanceof Point || existingGeometry instanceof Polygon) {
-            map.getView().fit(existingGeometry, { maxZoom: 18, duration: 650, padding: [64, 64, 64, 64] });
-          }
-          return;
-        }
-        const projected = geometry.type === "point"
-          ? new Point(fromLonLat(geometry.coordinates))
-          : new Polygon([geometry.coordinates.map((coordinate) => fromLonLat(coordinate))]);
-        const feature = new Feature({ geometry: projected });
-        feature.setId(geometry.id);
-        feature.setStyle(geometry.type === "point"
-          ? pointStyle(geometry.color)
-          : new Style({ fill: new Fill({ color: `${geometry.color}33` }), stroke: new Stroke({ color: geometry.color, width: 3 }) }));
-        highlightSourceRef.current.addFeature(feature);
-        map.getView().fit(projected, { maxZoom: 18, duration: 650, padding: [64, 64, 64, 64] });
-      },
-    });
-
-    map.on("singleclick", (clickEvent) => {
-      eventLayer.getFeatures(clickEvent.pixel).then((features) => {
-        if (!features.length) return;
-        const members = features[0].get("features") as Feature<Point>[];
-        if (members.length > 1) {
-          const extent = boundingExtent(members.map((member) => member.getGeometry()!.getCoordinates()));
-          map.getView().fit(extent, { duration: 650, padding: [72, 72, 72, 72], maxZoom: 17 });
-          setSelectedEvent(null);
-          return;
-        }
-        setSelectedEvent(members[0].get("event") as RoadEventMapPoint);
-      });
-    });
-
-    return () => {
-      mapController.attach(null);
-      unByKey(renderKey);
-      clusterSource.setSource(null);
-      map.setTarget(undefined);
-    };
-  }, [mapController]);
-
-  useEffect(() => {
-    const features = mapPoints.map((event) => {
-      const feature = new Feature({ geometry: new Point(fromLonLat([event.longitude, event.latitude])), event });
-      feature.setId(event.eventId);
-      return feature;
-    });
-    eventSourceRef.current.clear();
-    eventSourceRef.current.addFeatures(features);
-    setSelectedEvent(null);
-  }, [mapPoints]);
-
-  useEffect(() => setDismissedApiError(false), [city]);
-
+  // 頁面工具列已有定位錯誤提示；此控制僅供獨立使用地圖元件時啟用。
   const locateUser = () => {
-    if (!navigator.geolocation) return setError("你的瀏覽器不支援定位功能。");
+    if (!navigator.geolocation) return;
     navigator.geolocation.getCurrentPosition(
-      ({ coords }) => mapController.flyTo([coords.longitude, coords.latitude], 15),
-      () => setError("無法取得目前位置，請確認定位權限。"),
+      ({ coords }) => {
+        const coordinate: [number, number] = [
+          coords.longitude,
+          coords.latitude,
+        ];
+        mapController.setUserLocation(coordinate);
+        mapController.flyTo(coordinate, 15);
+      },
+      () => undefined,
       { enableHighAccuracy: true, timeout: 8000 },
     );
   };
 
   return (
-    <Box sx={{ position: "relative", height, width: "100%", overflow: "hidden", bgcolor: "#DCE8E5" }}>
-      <Box ref={mapContainer} sx={{ position: "absolute", inset: 0, "& .ol-zoom": { top: 1, left: 1 }, "& .ol-attribution": { fontSize: 11 } }} aria-label="臺灣即時路況地圖" />
-      {isLoading && <Box role="status" aria-label="正在載入地圖" sx={{ position: "absolute", inset: 0, display: "grid", placeItems: "center", bgcolor: "rgba(242,245,244,.76)", zIndex: 2 }}><CircularProgress color="secondary" /></Box>}
-      {(error || (isRoadEventError && !dismissedApiError)) && <Alert severity="warning" onClose={() => { setError(null); setDismissedApiError(true); }} sx={{ position: "absolute", top: 16, left: 16, right: 72, zIndex: 3 }}>{error ?? "道路事件暫時無法載入。"}</Alert>}
-      <IconButton onClick={locateUser} aria-label="定位到我的位置" sx={{ position: "absolute", right: 16, top: 16, zIndex: 3, bgcolor: "background.paper", color: "primary.main", boxShadow: "0 8px 22px rgba(11,46,60,.18)", "&:hover": { bgcolor: "background.paper" } }}><MyLocationRoundedIcon /></IconButton>
-      {selectedEvent && <Paper role="dialog" aria-label="道路事件詳細資訊" sx={{ position: "absolute", left: 16, bottom: 48, zIndex: 4, width: { xs: "calc(100% - 32px)", sm: 340 }, p: 2, bgcolor: "rgba(255,255,255,.96)" }}>
-        <IconButton size="small" aria-label="關閉事件資訊" onClick={() => setSelectedEvent(null)} sx={{ position: "absolute", right: 8, top: 8 }}><CloseRoundedIcon fontSize="small" /></IconButton>
-        <Typography component="h3" variant="subtitle1" fontWeight={800} sx={{ pr: 4 }}>{selectedEvent.eventTitle}</Typography>
-        <Typography variant="body2" color="text.secondary" sx={{ mt: 0.5 }}>{selectedEvent.location}</Typography>
-        <Typography variant="caption" color="text.secondary" sx={{ display: "block", mt: 1 }}>{selectedEvent.description}</Typography>
-      </Paper>}
-      <Chip role="status" label={`${mapPoints.length} 件事件・自動聚合`} size="small" sx={{ position: "absolute", right: 12, bottom: 28, zIndex: 3, bgcolor: "rgba(16,47,58,.9)", color: "#FFFFFF", fontSize: 11 }} />
+    <Box
+      sx={{
+        position: 'relative',
+        height,
+        width: '100%',
+        overflow: 'hidden',
+        bgcolor: 'background.default',
+      }}
+    >
+      <Box
+        ref={mapContainer}
+        sx={{
+          position: 'absolute',
+          inset: 0,
+          '& .ol-zoom': { top: 1, left: 1 },
+          '& .ol-attribution': {
+            right: 1.5,
+            bottom: 1.5,
+            maxWidth: 'calc(100% - 24px)',
+            fontSize: typographyTokens.fontSize.metadata,
+          },
+          '& .ol-scale-line': {
+            right: 1.5,
+            bottom: { xs: 8, sm: 28 },
+            left: 'auto',
+            borderRadius: 0,
+            bgcolor: 'rgba(255, 255, 255, 0.9)',
+            backdropFilter: 'blur(6px)',
+            opacity: 0.75,
+          },
+          '& .ol-scale-line-inner': {
+            fontSize: typographyTokens.fontSize.metadata,
+            fontWeight: 600,
+            color: 'text.primary',
+            borderColor: 'text.primary',
+          },
+        }}
+        aria-label="臺灣即時路況地圖"
+      />
+      {isLoading && (
+        <Box
+          role="status"
+          aria-label="正在載入地圖"
+          sx={{
+            position: 'absolute',
+            inset: 0,
+            display: 'flex',
+            flexDirection: 'column',
+            alignItems: 'center',
+            justifyContent: 'center',
+            gap: 1.5,
+            zIndex: 2,
+            bgcolor: `${uiColors.brand.mint}29`,
+            backdropFilter: 'blur(18px) saturate(1.1)',
+            WebkitBackdropFilter: 'blur(18px) saturate(1.1)',
+          }}
+        >
+          <RouteLoadingIndicator />
+          <Typography variant="h3" sx={{ color: 'text.main' }}>
+            地圖載入中…
+          </Typography>
+        </Box>
+      )}
+
+      {showLocateControl && (
+        <IconButton
+          onClick={locateUser}
+          aria-label="定位到我的位置"
+          sx={{
+            position: 'absolute',
+            right: 16,
+            top: 16,
+            zIndex: 3,
+            bgcolor: 'background.paper',
+            color: 'primary.main',
+            boxShadow: shadowTokens.control,
+            '&:hover': { bgcolor: 'background.paper' },
+          }}
+        >
+          <MyLocationRoundedIcon />
+        </IconButton>
+      )}
+      {createPortal(
+        <SelectedFeaturePopup
+          selectedFeature={selectedFeature}
+          refresh={selectedFeatureRefresh}
+          onClose={closePopup}
+        />,
+        popupContainer,
+      )}
+      {showEventCount && (
+        <Chip
+          role="status"
+          label={`${roadEventLayer.points.length} 件事件・自動聚合`}
+          size="small"
+          sx={{
+            position: 'absolute',
+            right: 12,
+            bottom: 28,
+            zIndex: 3,
+            bgcolor: 'rgba(6,43,91,.92)',
+            color: '#FFFFFF',
+            fontSize: typographyTokens.fontSize.metadata,
+          }}
+        />
+      )}
     </Box>
   );
 }

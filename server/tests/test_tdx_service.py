@@ -1,6 +1,6 @@
 import unittest
 
-from server.traffic.tdx_service import RoadEventService, UnsupportedCityError, normalize_city
+from server.services.road_event_service import RoadEventService, UnsupportedCityError, normalize_city
 
 
 class FakeClient:
@@ -31,6 +31,16 @@ class RoadEventServiceTests(unittest.TestCase):
         self.assertEqual(first, second)
         self.assertEqual(first["city"], "Taichung")
         self.assertEqual(len(client.calls), 2)
+
+    def test_keeps_live_events_when_preview_endpoint_does_not_cover_city(self):
+        client = FakeClient()
+        service = RoadEventService(client, ttl_seconds=60, clock=lambda: 1_000)
+
+        result = service.get_city_events("高雄市", top=20)
+
+        self.assertEqual(result["preview"], {"Events": []})
+        self.assertEqual(result["live"]["LiveEvents"][0]["EventID"], "1")
+        self.assertEqual(client.calls, [("Kaohsiung", True, 20)])
 
 
 if __name__ == "__main__":
