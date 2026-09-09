@@ -35,13 +35,15 @@ export type RouteResult = {
   source: string;
 };
 
+const apiBaseUrl = (import.meta.env.VITE_API_BASE_URL ?? '/api').replace(/\/$/, '');
+
 /** 透過後端代理計算路線，避免將 Geoapify API Key 暴露至瀏覽器。 */
 export async function calculateRoute(
   waypoints: RouteCoordinate[],
   travelMode: RouteTravelMode = 'drive',
   fetcher: typeof fetch = fetch,
 ): Promise<RouteResult> {
-  const response = await fetcher('/api/routes', {
+  const response = await fetcher(`${apiBaseUrl}/routes`, {
     method: 'POST',
     headers: {
       Accept: 'application/json',
