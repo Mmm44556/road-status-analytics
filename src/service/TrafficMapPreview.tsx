@@ -2,11 +2,13 @@ import { useEffect, useMemo, useRef, useState } from 'react';
 import { createPortal } from 'react-dom';
 import Box from '@mui/material/Box';
 import Chip from '@mui/material/Chip';
-import CircularProgress from '@mui/material/CircularProgress';
 import IconButton from '@mui/material/IconButton';
+import Typography from '@mui/material/Typography';
 import MyLocationRoundedIcon from '@mui/icons-material/MyLocationRounded';
 import 'ol/ol.css';
 import { shadowTokens, typographyTokens } from '@/config/designTokens';
+import { uiColors } from '@/config/semanticColors';
+import RouteLoadingIndicator from '@/components/RouteLoadingIndicator';
 import { useTrafficMapContext } from '@/hooks/useGetContext';
 import { useCctvLayer } from '@/service/map/layers/useCctvLayer';
 import { useRoadEventLayer } from '@/service/map/layers/useRoadEventLayer';
@@ -147,14 +149,20 @@ export default function TrafficMapPreview({
     selectedTownship,
   );
   const routeAnalysis = useMemo(() => {
-    if (!route || route.travelMode !== 'drive') return { status: 'idle' } as const;
+    if (!route || route.travelMode !== 'drive')
+      return { status: 'idle' } as const;
     if (roadEventLayer.isLoading) return { status: 'loading' } as const;
     if (roadEventLayer.isError) return { status: 'error' } as const;
     return {
       status: 'ready',
       analysis: analyzeRouteEvents(route.geometry, roadEventLayer.allPoints),
     } as const;
-  }, [route, roadEventLayer.allPoints, roadEventLayer.isError, roadEventLayer.isLoading]);
+  }, [
+    route,
+    roadEventLayer.allPoints,
+    roadEventLayer.isError,
+    roadEventLayer.isLoading,
+  ]);
 
   useEffect(() => {
     onRouteAnalysisChange(routeAnalysis);
@@ -287,13 +295,21 @@ export default function TrafficMapPreview({
           sx={{
             position: 'absolute',
             inset: 0,
-            display: 'grid',
-            placeItems: 'center',
-            bgcolor: 'rgba(243,247,250,.78)',
+            display: 'flex',
+            flexDirection: 'column',
+            alignItems: 'center',
+            justifyContent: 'center',
+            gap: 1.5,
             zIndex: 2,
+            bgcolor: `${uiColors.brand.mint}29`,
+            backdropFilter: 'blur(18px) saturate(1.1)',
+            WebkitBackdropFilter: 'blur(18px) saturate(1.1)',
           }}
         >
-          <CircularProgress color="secondary" />
+          <RouteLoadingIndicator />
+          <Typography variant="h3" sx={{ color: 'text.main' }}>
+            地圖載入中…
+          </Typography>
         </Box>
       )}
 
