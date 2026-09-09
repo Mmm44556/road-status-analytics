@@ -5,7 +5,7 @@ import type {
   Polygon,
   Topology,
 } from 'topojson-specification';
-import taiwanTopologyJson from '@/data/Taiwan-country.topo.json';
+import taiwanTopologyJson from '@/data/taiwan-country.topo.json';
 
 type Coordinate = [number, number];
 
