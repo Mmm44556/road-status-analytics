@@ -413,7 +413,7 @@ export default function LayerMenu({
           <Tooltip key={definition.id} title={undefined}>
             <Badge
               badgeContent={definition.count}
-              color="secondary"
+              color="primary"
               invisible={definition.count === 0}
               sx={{ flexShrink: 0 }}
             >
