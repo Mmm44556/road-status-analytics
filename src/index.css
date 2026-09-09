@@ -5,19 +5,16 @@
 * {
   font-variant-numeric: tabular-nums;
 }
-html {
-  height: 100dvh;
-}
 
+html,
 body,
 #root {
-  width: 100%;
   height: 100%;
 }
 
 body {
   margin: 0;
-  min-width: 320px;
+  overflow-x: hidden;
 }
 * {
   box-sizing: border-box;

@@ -1,3 +1,4 @@
+import { Link } from '@tanstack/react-router';
 import AppBar from '@mui/material/AppBar';
 import Box from '@mui/material/Box';
 import Toolbar from '@mui/material/Toolbar';
@@ -23,7 +24,12 @@ export default function NavBar() {
           gap: 1,
         }}
       >
-        <Box sx={{ display: 'flex', alignItems: 'center', flexShrink: 0 }}>
+        <Box
+          component={Link}
+          to="/welcome"
+          aria-label={`回到 ${ChatName} 介紹頁`}
+          sx={{ display: 'flex', alignItems: 'center', flexShrink: 0 }}
+        >
           <Box
             component="img"
             src="/Logo.png"
