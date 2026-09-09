@@ -1,7 +1,7 @@
 import { feature } from 'topojson-client';
 import type { MultiPolygon, Polygon } from 'geojson';
 import type { GeometryCollection, Topology } from 'topojson-specification';
-import taiwanTopologyJson from '@/data/Taiwan-country.topo.json';
+import taiwanTopologyJson from '@/data/taiwan-country.topo.json';
 
 export type CountyBoundary = {
   id: string;
