@@ -37,20 +37,16 @@ export default function NavBar() {
             sx={{ display: 'block', width: 'auto', height: { xs: 50, sm: 65 } }}
           />
         </Box>
-        {/* flex:1 + minWidth:0 讓這個容器在空間不夠時可以縮小並捲動，
-            而不是把整條 Toolbar 撐寬；未來圖層選單按鈕變多也不會破版，用滑動取代擠壓。
-            設 overflowX 會讓瀏覽器把 overflowY 也算成 auto（CSS 規範如此，設 visible 沒用），
-            按鈕上的數字角標是絕對定位、會凸出按鈕本身的框，不會被算進容器高度，
-            所以上下留白 padding 讓角標留在容器範圍內，才不會被這個捲動邊界切掉。 */}
         <Box
           id="header-layer-controls"
           sx={{
             display: 'flex',
             alignItems: 'center',
-            justifyContent: { xs: 'end', sm: 'start' },
+            justifyContent: { xs: 'end', md: 'start' },
             flex: 1,
             minWidth: 0,
             py: '10px',
+            px: { xs: 1.5, sm: 0 },
             overflowX: 'auto',
             scrollbarWidth: 'none',
             '&::-webkit-scrollbar': { display: 'none' },
