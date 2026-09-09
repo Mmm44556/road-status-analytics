@@ -204,8 +204,8 @@ repo 根目錄的 [`render.yaml`](./render.yaml) 是一份 [Render Blueprint](ht
 
 1. Render dashboard 選 **New +** → **Blueprint**，指到這個 repo。
 2. Render 會提示填入標記 `sync: false` 的機密值：`TDX_CLIENT_ID`／`TDX_CLIENT_SECRET`／`GEOAPIFY_API_KEY`／`GEMINI_API_KEY`（後兩者留空的話，對應的路線規劃／AI 助理功能會自動關閉）。
-3. 部署完成後，前後端網址預設是 `https://routesight-frontend.onrender.com`／`https://routesight-backend.onrender.com`——如果建立當下這兩個名稱已被別人占走、Render 改配了別的網址，記得回去同步改掉 `routesight-backend` 服務的 `ALLOWED_ORIGINS` 與 `routesight-frontend` 服務的 `VITE_API_BASE_URL`（Vite 的環境變數是**建置時**寫死進 bundle，改完要重新部署前端才會生效）。
-4. 接自訂網域（例如透過 Cloudflare DNS）時，記得把新網域也加進 `ALLOWED_ORIGINS`（逗號分隔可以放多個來源），不然前端會被 CORS 擋掉。
+3. 正式網址走 Cloudflare 自訂網域：前端 `routesight.shungyou.com`、後端 `api.routesight.shungyou.com`。到 Cloudflare 幫這兩個子網域各加一筆 **CNAME**，目標分別指到 Render 給的 `routesight-frontend.onrender.com`／`routesight-backend.onrender.com`（實際值以 Render Custom Domains 頁面顯示的為準，如果服務名稱建立時被別人占走、Render 改配了別的網址，這裡也要跟著換）。**新增時 Proxy 狀態先關掉（灰雲、DNS only）**，等 Render 那邊驗證網域＋核發憑證完成後，才把 Proxy 打開（橘雲）；SSL 模式選 **Full** 或 **Full (strict)**，不要選 Flexible，不然會跟 Render 的 HTTPS 衝突造成重導向迴圈。
+4. 後端 `api.routesight.shungyou.com` 驗證＋憑證都生效後，重新部署一次 `routesight-frontend`——`VITE_API_BASE_URL` 是**建置時**就寫死進前端 bundle 的，網域生效前部署的版本還是打舊網址。
 
 跟 Docker 那套「nginx 同源反代 `/api`」不同，Render 這裡前後端是兩個獨立網域，前端直接跨源打後端（見 `src/service/*Api.ts` 的 `VITE_API_BASE_URL`），所以不需要反向代理設定，但要顧好 CORS。
 

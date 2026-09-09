@@ -3,12 +3,17 @@
 # 指到這個 repo，Render 會照這份檔案建好三個服務並提示你填入標記
 # sync:false 的機密值（TDX／Geoapify／Gemini 金鑰）。
 #
-# 部署後兩件事要注意：
-# 1. 這裡把前後端網址寫死成 <name>.onrender.com（由下面各自的 name 決定），
-#    如果建立時 Render 顯示該名稱已被占用而改配別的網址，記得回來同步
-#    改掉 ALLOWED_ORIGINS／VITE_API_BASE_URL 這兩個值。
-# 2. 之後接上 Cloudflare 自訂網域時，要把新網域加進 backend 的
-#    ALLOWED_ORIGINS（逗號分隔可以放多個），不然前端會被 CORS 擋掉。
+# 網域：正式網址走 Cloudflare 自訂網域（routesight.shungyou.com／
+# api.routesight.shungyou.com），ALLOWED_ORIGINS 同時保留 .onrender.com
+# 那組預設網址當備援，方便直接用 Render 給的網址測試、不用等 DNS 生效。
+#
+# 部署後要注意：
+# 1. 如果建立時 Render 顯示 routesight-frontend／routesight-backend 這兩個
+#    名稱已被占用而改配別的網址，記得回來同步改掉 ALLOWED_ORIGINS／
+#    VITE_API_BASE_URL 這兩個值。
+# 2. VITE_API_BASE_URL 是建置時就寫死進前端 bundle 的，所以要等後端的
+#    api.routesight.shungyou.com 自訂網域在 Render 那邊驗證＋憑證都生效
+#    後，才重新部署一次前端，不然這段時間前端會打一個還沒通的網址。
 
 services:
   - type: web
@@ -28,7 +33,7 @@ services:
       - key: GEMINI_API_KEY
         sync: false
       - key: ALLOWED_ORIGINS
-        value: https://routesight-frontend.onrender.com
+        value: https://routesight-frontend.onrender.com,https://routesight.shungyou.com
       - key: CACHE_NAMESPACE
         value: "roadmap:v1"
       - key: ENABLE_SYSTEM_STATS
@@ -55,7 +60,7 @@ services:
     staticPublishPath: ./dist
     envVars:
       - key: VITE_API_BASE_URL
-        value: https://routesight-backend.onrender.com
+        value: https://api.routesight.shungyou.com
     routes:
       # SPA：不存在的路徑交給前端 router 處理，而不是回 404
       # （跟 nginx.conf 裡 try_files 的效果一樣）。
