@@ -11,6 +11,7 @@
 - <a href="#env">環境設定</a>
 - <a href="#install">安裝與啟動</a>
 - <a href="#docker">用 Docker 跑</a>
+- <a href="#render">部署到 Render</a>
 - <a href="#test">驗證</a>
 - <a href="#structure">專案結構</a>
 - <a href="#data-sources">資料來源</a>
@@ -196,6 +197,17 @@ docker compose up --build
 docker compose down        # 保留 Redis 資料
 docker compose down -v     # 連 Redis 資料一起清掉
 ```
+
+<h2 id="render">部署到 Render ( Deploy to Render )</h2>
+
+repo 根目錄的 [`render.yaml`](./render.yaml) 是一份 [Render Blueprint](https://render.com/docs/blueprint-spec)，一次建好三個服務：`routesight-frontend`（Static Site，免費、沒有冷啟動）、`routesight-backend`（Docker Web Service，吃 `server/Dockerfile`，免費方案閒置會冷啟動）、`routesight-redis`（免費 Key Value）。
+
+1. Render dashboard 選 **New +** → **Blueprint**，指到這個 repo。
+2. Render 會提示填入標記 `sync: false` 的機密值：`TDX_CLIENT_ID`／`TDX_CLIENT_SECRET`／`GEOAPIFY_API_KEY`／`GEMINI_API_KEY`（後兩者留空的話，對應的路線規劃／AI 助理功能會自動關閉）。
+3. 部署完成後，前後端網址預設是 `https://routesight-frontend.onrender.com`／`https://routesight-backend.onrender.com`——如果建立當下這兩個名稱已被別人占走、Render 改配了別的網址，記得回去同步改掉 `routesight-backend` 服務的 `ALLOWED_ORIGINS` 與 `routesight-frontend` 服務的 `VITE_API_BASE_URL`（Vite 的環境變數是**建置時**寫死進 bundle，改完要重新部署前端才會生效）。
+4. 接自訂網域（例如透過 Cloudflare DNS）時，記得把新網域也加進 `ALLOWED_ORIGINS`（逗號分隔可以放多個來源），不然前端會被 CORS 擋掉。
+
+跟 Docker 那套「nginx 同源反代 `/api`」不同，Render 這裡前後端是兩個獨立網域，前端直接跨源打後端（見 `src/service/*Api.ts` 的 `VITE_API_BASE_URL`），所以不需要反向代理設定，但要顧好 CORS。
 
 <h2 id="test">驗證 ( Testing )</h2>
 
