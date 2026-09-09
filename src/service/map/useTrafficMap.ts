@@ -538,7 +538,7 @@ export function useTrafficMap({
           return new Style({
             text: new Text({
               text: county.name,
-              font: '700 15px "Noto Sans TC", "PingFang TC", sans-serif',
+              font: '700 13.5px "Noto Sans TC", "PingFang TC", sans-serif',
               fill: new Fill({ color: '#FFFFFF' }),
               stroke: new Stroke({ color: 'rgba(0,0,0,.9)', width: 4 }),
             }),
@@ -584,7 +584,7 @@ export function useTrafficMap({
           return new Style({
             text: new Text({
               text: township.name,
-              font: '600 14px "Noto Sans TC", "PingFang TC", sans-serif',
+              font: '600 13px "Noto Sans TC", "PingFang TC", sans-serif',
               fill: new Fill({ color: '#FFFFFF' }),
               stroke: new Stroke({ color: 'rgba(0,0,0,.9)', width: 4 }),
             }),
