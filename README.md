@@ -27,25 +27,28 @@
 
 <h3>1. 首頁：全臺地圖、圖層選單與圖例</h3>
 
-`.github/screenshots/home.png`
+<image src="./docs/images/demo_1.jpg" alt=""/>
+<image src="./docs/images/demo_2.jpg" alt=""/>
 
 <h3>2. 選擇縣市／鄉鎮，交通圖層才依範圍啟用查詢</h3>
-
-`.github/screenshots/area-selection.gif`
+<image src="./docs/images/demo_4.jpg" alt=""/>
+<image src="./docs/images/demo_4_1.jpg" alt=""/>
 
 <h3>3. AI 路線助理：對話直接觸發地圖操作</h3>
 
-`.github/screenshots/ai-assistant.gif`
+<image src="./docs/images/demo_6.jpg" alt=""/>
 
 <h3>4. 路線規劃：多途經點與沿途事件分析</h3>
+<image src="./docs/images/demo_7.jpg" alt=""/>
 
-`.github/screenshots/route-planner.gif`
+<h3>5. 操作導覽：引導各個操作用途</h3>
+<image src="./docs/images/demo_3.jpg" alt=""/>
 
 <h2 id="tools">技術棧 ( Tools )</h2>
 
 **前端:** React 19、TypeScript、Vite、OpenLayers 10、MUI 7、TanStack Router、TanStack Query、Zod、GSAP
 
-**後端:** FastAPI、Pydantic、requests、Redis（選配，未設定時自動退回程序內快取）
+**後端:** FastAPI、Pydantic、requests、Redis
 
 **AI／資料整合:** Gemini API（function calling 結構化地圖指令）、Geoapify（地點搜尋與路徑規劃）、TDX 運輸資料流通服務、NLSC 國土測繪中心 WMTS 底圖
 
