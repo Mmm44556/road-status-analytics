@@ -1,4 +1,4 @@
-import { useMemo, useRef, useState } from 'react';
+import { lazy, Suspense, useMemo, useRef, useState } from 'react';
 import Alert from '@mui/material/Alert';
 import Box from '@mui/material/Box';
 import Snackbar from '@mui/material/Snackbar';
@@ -7,11 +7,9 @@ import { TrafficMapViewContext } from '@/context';
 import { createMapController } from '@/service/map/shared/mapController';
 import type { TrafficLayerId } from '@/data/trafficLayerCatalog';
 import { trafficLayerCatalog } from '@/data/trafficLayerCatalog';
-import LayerMenu from './LayerMenu';
 import MapToolbar from './MapToolbar';
 import TrafficLegend from './TrafficLegend';
 import CountySelectionControl from './CountySelectionControl';
-import MapTourButton from './MapTourButton';
 import type { CountySelection } from '@/service/map/features/countyBoundaries';
 import type { TownshipSelection } from '@/service/map/features/townshipBoundaries';
 import { DEFAULT_BASEMAP_ID, type BasemapId } from '@/data/basemapCatalog';
@@ -20,10 +18,7 @@ import {
   type PlaceSearchResult,
 } from '@/service/placeSearchApi';
 import type { RouteCoordinate, RouteResult } from '@/service/routeApi';
-import RoutePlannerCard from './RoutePlannerCard';
-import AiRouteChatCard from './AiRouteChatCard';
 import AiChatFab from './AiChatFab';
-import { executeAiMapAction as runAiMapAction } from './aiMapActionExecutor';
 import type { AiMapAction } from '@/service/aiChatApi';
 import type { RouteEventAnalysisState } from '@/service/map/features/routeEventAnalysis';
 import { createAsyncRequestLock } from '@/utils/asyncRequestLock';
@@ -34,6 +29,16 @@ import {
   getRouteModeVisibleLayers,
   type MapQueryMode,
 } from './mapQueryMode';
+
+// 這幾個都不是「看地圖」這件事的必要路徑（圖層選單要點開才用得到、路線
+// 規劃卡片本來就是條件渲染、AI 聊天面板／操作導覽也是使用者主動觸發才
+// 需要），用 React.lazy 拆成獨立 chunk，才不會讓地圖首次進來要多等這些
+// 用不到的程式碼載入完。TrafficMapPreview（實際地圖）維持一般 import，
+// 那是唯一真正擋在第一次有畫面之前的東西。
+const LayerMenu = lazy(() => import('./LayerMenu'));
+const RoutePlannerCard = lazy(() => import('./RoutePlannerCard'));
+const AiRouteChatCard = lazy(() => import('./AiRouteChatCard'));
+const MapTourButton = lazy(() => import('./MapTourButton'));
 
 /** 圖層預設的可見集合，初始掛載與「重置所有設定」都要用同一份，避免各寫一次兩邊漏改。 */
 function getDefaultVisibleLayers(): Set<TrafficLayerId> {
@@ -241,9 +246,18 @@ export default function TrafficMapPage() {
     mapController.fitCounty(selectedCounty.id);
   };
 
-  /** 執行 AI 助理下的結構化地圖動作，並回傳結果摘要供對話接著說明。 */
-  const executeAiMapAction = (action: AiMapAction) =>
-    runAiMapAction(action, {
+  /**
+   * 執行 AI 助理下的結構化地圖動作，並回傳結果摘要供對話接著說明。
+   * 動態 import：這份執行器只有使用者真的開口叫 AI 做事才會用到，本來
+   * 就是非同步流程（AI 對話本身就要等串流回應），這裡動態載入不會多一個
+   * 「使用者感覺得到的等待」，卻能讓地圖首次進站的主要 chunk 少揹一份
+   * 平常用不到的程式碼。
+   */
+  const executeAiMapAction = async (action: AiMapAction) => {
+    const { executeAiMapAction: runAiMapAction } = await import(
+      './aiMapActionExecutor'
+    );
+    return runAiMapAction(action, {
       visibleLayers,
       queryMode,
       route,
@@ -259,6 +273,7 @@ export default function TrafficMapPage() {
       reselectCounty,
       setBasemapId,
     });
+  };
 
   return (
     <TrafficMapViewContext.Provider value={{ mapController }}>
@@ -316,20 +331,24 @@ export default function TrafficMapPage() {
               routeCities={routeCities}
               onRouteAnalysisChange={setRouteAnalysis}
             />
-            <LayerMenu
-              visibleLayers={visibleLayers}
-              showBoundaryMask={showBoundaryMask}
-              showAdministrativeBoundaries={showAdministrativeBoundaries}
-              onToggle={toggleLayer}
-              onToggleBoundaryMask={() => setShowBoundaryMask((current) => !current)}
-              onToggleAdministrativeBoundaries={() =>
-                setShowAdministrativeBoundaries((current) => !current)
-              }
-              canToggleLayer={canToggleLayer}
-              basemapId={basemapId}
-              onChangeBasemap={setBasemapId}
-              onReset={resetAll}
-            />
+            <Suspense fallback={null}>
+              <LayerMenu
+                visibleLayers={visibleLayers}
+                showBoundaryMask={showBoundaryMask}
+                showAdministrativeBoundaries={showAdministrativeBoundaries}
+                onToggle={toggleLayer}
+                onToggleBoundaryMask={() =>
+                  setShowBoundaryMask((current) => !current)
+                }
+                onToggleAdministrativeBoundaries={() =>
+                  setShowAdministrativeBoundaries((current) => !current)
+                }
+                canToggleLayer={canToggleLayer}
+                basemapId={basemapId}
+                onChangeBasemap={setBasemapId}
+                onReset={resetAll}
+              />
+            </Suspense>
             {visibleLayers.has('liveTraffic') && <TrafficLegend />}
             {queryMode === 'area' && (
               <CountySelectionControl
@@ -360,25 +379,31 @@ export default function TrafficMapPage() {
               isOpen={isAiChatOpen}
               onToggle={() => setIsAiChatOpen((current) => !current)}
             />
-            <MapTourButton />
+            <Suspense fallback={null}>
+              <MapTourButton />
+            </Suspense>
             {isRoutePlannerOpen && (
-              <RoutePlannerCard
-                city={null}
-                onClose={() => setIsRoutePlannerOpen(false)}
-                onRouteChange={handleRouteChange}
-                route={route}
-                routeAnalysis={routeAnalysis}
-                routeCountyNames={routeCities}
-                onUseCurrentLocation={getUserLocation}
-                onError={setNotice}
-              />
+              <Suspense fallback={null}>
+                <RoutePlannerCard
+                  city={null}
+                  onClose={() => setIsRoutePlannerOpen(false)}
+                  onRouteChange={handleRouteChange}
+                  route={route}
+                  routeAnalysis={routeAnalysis}
+                  routeCountyNames={routeCities}
+                  onUseCurrentLocation={getUserLocation}
+                  onError={setNotice}
+                />
+              </Suspense>
             )}
             {/* 永遠掛載、用 isOpen 切換顯示，關閉面板不會清掉對話內容。 */}
-            <AiRouteChatCard
-              isOpen={isAiChatOpen}
-              onClose={() => setIsAiChatOpen(false)}
-              executeAiMapAction={executeAiMapAction}
-            />
+            <Suspense fallback={null}>
+              <AiRouteChatCard
+                isOpen={isAiChatOpen}
+                onClose={() => setIsAiChatOpen(false)}
+                executeAiMapAction={executeAiMapAction}
+              />
+            </Suspense>
           </ErrorBoundary>
         </Box>
         <Snackbar
