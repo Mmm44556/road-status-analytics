@@ -18,7 +18,7 @@ export default function WelcomePage() {
     <Box
       sx={{
         position: 'relative',
-        overflowX: 'hidden',
+        overflow: 'hidden',
         flex: 1,
         display: 'flex',
         alignItems: isMobile ? 'stretch' : 'center',
