@@ -6,12 +6,11 @@
   font-variant-numeric: tabular-nums;
 }
 
-html,
-body,
-#root {
-  height: 100%;
-}
-
+/* 高度只錨在 __root.tsx 最外層那個 Box（height:'100dvh'）一個地方就好。
+   html/body/#root 不要再各自疊一份 height:100%——html 是 100% of 視窗、
+   body 是 100% of html、#root 是 100% of body，三層都是「硬性高度」而不是
+   下限，只要哪一層因為捲軸寬度或 dvh／% 的細微差異多出一點誤差，就會有
+   兩個獨立的捲動容器同時判定自己該出現捲軸，變成雙捲軸。 */
 body {
   margin: 0;
   overflow-x: hidden;
